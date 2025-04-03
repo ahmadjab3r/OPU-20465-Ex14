@@ -21,12 +21,11 @@ char *generate_file_name(char *file_name, int stage)
   if (stage == PRE_MACRO_STAGE)
     {
       allocate_new_file_name(file_name, &edited_file_name, 2, 3,
-                       PREC_FILE_ENDING);
+                             PREC_FILE_ENDING);
     }
   /* Second stage, the current file name ends in .prec */
   if (stage == MACRO_STAGE)
     {
-
       allocate_new_file_name(file_name, &edited_file_name, 1, 5,
                              MCRO_FILE_ENDING);
     }
@@ -38,7 +37,7 @@ char *generate_file_name(char *file_name, int stage)
  * @param file_name string of the input file name
  * @return string the name of the new file after white spaces removed
  */
-char *remove_spaces(char *file_name, char* output_file_name)
+char *remove_spaces(char *file_name, char *output_file_name)
 {
   FILE *input_file = fopen(file_name, "r");
   if (input_file == NULL)
@@ -71,4 +70,26 @@ char *remove_spaces(char *file_name, char* output_file_name)
   fclose(output_file);
 
   return output_file_name;
+}
+
+char *copy_text(char *macro_content, char *current_line)
+{
+  int length;
+  /** appends current_line to macro_content **/
+  if (macro_content == NULL)
+    {
+      macro_content = malloc(strlen(current_line) + 1);
+    }
+  else
+    {
+      length = strlen(macro_content) + strlen(current_line) + 1;
+      macro_content = realloc(macro_content, length);
+    }
+  if (macro_content == NULL)
+    {
+      //TODO HANDLE ERROR
+      return NULL;
+    }
+  strcat(macro_content, current_line);
+  return macro_content;
 }

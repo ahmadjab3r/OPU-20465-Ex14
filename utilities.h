@@ -17,5 +17,6 @@ char *remove_spaces(char *file_name, char *output_file_name);
 void allocate_new_file_name(char *file_name, char **edited_file_name,
                        int additional_size,
                        int removal_size,char *ending);
+char *copy_text(char *macro_content, char* current_line);
 
 #endif
