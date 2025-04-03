@@ -10,12 +10,12 @@
 int main() {
   char *pre_macro, *macro, *label, *second;
 
-  char * file = "../tests/simple_macro_example.as";
-  pre_macro = generate_file_name(file, PRE_MACRO_STAGE);
-  macro = generate_file_name(file, MACRO_STAGE);
-  label = generate_file_name(file, LABEL_STAGE);
-  second = generate_file_name(file, SECOND_STAGE);
-
+  // char * file = "../tests/simple_macro_example.as";
+  // pre_macro = generate_file_name(file, PRE_MACRO_STAGE);
+  // macro = generate_file_name(file, MACRO_STAGE);
+  // label = generate_file_name(file, LABEL_STAGE);
+  // second = generate_file_name(file, SECOND_STAGE);
+  //
   // remove_spaces(file, pre_macro);
   // initial_run(pre_macro, macro);
   struct MacroTable *m = create_table();
@@ -24,14 +24,19 @@ int main() {
   struct Macro ex3 = {"ex3", "ex3_content", NULL, 0};
   insert_macro(m, ex1.macro_name, ex1.macro_content);
   insert_macro(m, ex2.macro_name, ex2.macro_content);
+  printf("\nthis is the old hash %d\n", hash_function(ex2.macro_name, m->size));
+
   insert_macro(m, ex3.macro_name, ex3.macro_content);
   struct Macro *found_macro = search_macro(m, "ex2");
+
+  printf("\nthis is the new hash %d\n", hash_function(ex2.macro_name, m->size));
   if (found_macro != NULL) {
     printf("Found macro: %s\n", found_macro->macro_name);
   } else {
     printf("Macro not found\n");
   }
   struct Macro *found_macro2 = search_macro(m, "ex1");
+  printf("testing %s", m->macros[4]->macro_content);
   if (found_macro != NULL) {
       printf("Found macro: %s\n", found_macro2->macro_name);
   } else {

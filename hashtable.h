@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define TABLE_SIZE 50
+#define TABLE_SIZE 4
 #define TABLE_MULTIPLIER 2
-#define TABLE_UPPER_LIMIT 0.7
+#define TABLE_UPPER_LIMIT 0.5
 
 #define PRIME_NUMBER 7
 
