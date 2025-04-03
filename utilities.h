@@ -6,6 +6,7 @@
 #include "skeleton.h"
 #include <ctype.h>
 #include <string.h>
+#include "hashtable.h"
 
 char *generate_file_name(char *file_name, int stage);
 /**
@@ -18,5 +19,11 @@ void allocate_new_file_name(char *file_name, char **edited_file_name,
                        int additional_size,
                        int removal_size,char *ending);
 char *copy_text(char *macro_content, char* current_line);
+
+table* initialize_op_code_table(void);
+
+void print_hash_table(table *table);
+
+
 
 #endif

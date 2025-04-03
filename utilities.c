@@ -93,3 +93,53 @@ char *copy_text(char *macro_content, char *current_line)
   strcat(macro_content, current_line);
   return macro_content;
 }
+
+table *initialize_op_code_table(void)
+{
+  table *op_code_table = create_table();
+  if (op_code_table == NULL)
+    {
+      //TODO HANDLE ERROR
+      return NULL;
+    }
+  insert_macro(op_code_table, "mov", "2");
+  insert_macro(op_code_table, "cmp", "2");
+  insert_macro(op_code_table, "add", "2");
+  insert_macro(op_code_table, "sub", "2");
+  insert_macro(op_code_table, "not", "1");
+  insert_macro(op_code_table, "clr", "1");
+  insert_macro(op_code_table, "lea", "2");
+  insert_macro(op_code_table, "inc", "1");
+  insert_macro(op_code_table, "dec", "1");
+  insert_macro(op_code_table, "jmp", "1");
+  insert_macro(op_code_table, "bne", "1");
+  insert_macro(op_code_table, "red", "1");
+  insert_macro(op_code_table, "prn", "1");
+  insert_macro(op_code_table, "jsr", "1");
+  insert_macro(op_code_table, "rts", "0");
+  insert_macro(op_code_table, "stop", "0");
+  return op_code_table;
+}
+void print_hash_table(table *table)
+{
+  for (int i = 0; i < table->size; i++)
+    {
+      if (table->macros[i] != NULL)
+        {
+          printf("Index %d, ", i);
+          printf("Key: %s Value: %s\n", table->macros[i]->key,
+                 table->macros[i]->value);
+          if (table->macros[i]->next != NULL)
+            {
+              struct table_item *current_macro =
+                table->macros[i]->next;
+              while (current_macro != NULL)
+                {
+                  printf("          Key: %s Value: %s\n", current_macro->key,
+                         current_macro->value);
+                  current_macro = current_macro->next;
+                }
+            }
+        }
+    }
+}

@@ -5,11 +5,12 @@
 
 
 
-int main() {
+int main(void) {
   char *pre_macro, *macro, *label, *second;
-  int current_ic = IC_INITIAL;
-  MacroTable *table = create_table();
-  if (table == NULL)
+  int IC=IC_INITIAL,DC=DC_INITIAL;
+  table *macro_table = create_table();
+  table *op_table = initialize_op_code_table();
+  if (macro_table == NULL)
     {
       //TODO HANDLE ERROR
       return -1;
@@ -22,9 +23,10 @@ int main() {
   second = generate_file_name(file, SECOND_STAGE);
 
   remove_spaces(file, pre_macro);
-  initial_run(pre_macro, macro,table);
-
-
+  initial_run(pre_macro, macro,macro_table);
+  print_hash_table(macro_table);
+  printf("This is hashtable\n");
+  print_hash_table(op_table);
 
   return 0;
 }

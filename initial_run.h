@@ -7,10 +7,9 @@
 #include "stdio.h"
 #include "skeleton.h"
 #include "utilities.h"
-#include "hashtable.h"
 
 
 
-int initial_run(char *file_name, char *output_file_name,MacroTable *table);
-int store_mcro(char *line, FILE *fp, struct MacroTable *table );
+int initial_run(char *file_name, char *output_file_name,table *macro_table);
+int store_mcro(char *line, FILE *fp, struct table *macro_table );
 #endif

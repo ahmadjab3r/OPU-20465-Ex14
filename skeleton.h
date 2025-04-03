@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #define LINE_LENGTH 80 /* Maybe add one more for /n doouble check that*/
 #define IC_INITIAL 100
+#define DC_INITIAL 0
 #define MCRO "mcro"
 #define ENDMCRO "endmcro"
 #define PREC_FILE_ENDING ".prec"
