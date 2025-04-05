@@ -1,6 +1,7 @@
 #include "initial_run.h"
 
-int initial_run(char *file_name, char *output_file_name, table *macro_table)
+int initial_run(char *file_name, char *output_file_name, table *macro_table,
+table* symbol_table)
 {
   char current_line[LINE_LENGTH];
   FILE *file;
@@ -25,9 +26,12 @@ int initial_run(char *file_name, char *output_file_name, table *macro_table)
 }
 int store_mcro(char *current_line, FILE *file, struct table *table)
 {
-  char *macro_name;
+  char *macro_name,*token;
   char *macro_content= NULL;
-  macro_name = strtok(current_line, " ");
+  token = strtok(current_line, " \n");
+  token= strtok(NULL, " \n");
+
+  macro_name = strdup(token);
   if (macro_name == NULL)
     {
       //TODO HANDLE ERROR
@@ -54,10 +58,15 @@ int store_mcro(char *current_line, FILE *file, struct table *table)
       return -1;
     }
   printf("-----------MCRO CONTENT START----------- \n");
-
   printf("%s", macro_content);
   printf("-----------MCRO CONTENT END----------- \n");
 
-  insert_macro(table, macro_name, macro_content);
+  if (insert_macro(table, macro_name, macro_content))
+    {
+      //TODO handle error
+    }
+  free(macro_content);
+  free(macro_name);
+
   return 0;
 }

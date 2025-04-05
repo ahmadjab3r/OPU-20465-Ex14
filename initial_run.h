@@ -10,6 +10,7 @@
 
 
 
-int initial_run(char *file_name, char *output_file_name,table *macro_table);
+int initial_run(char *file_name, char *output_file_name,table *macro_table,
+table *symbol_table);
 int store_mcro(char *line, FILE *fp, struct table *macro_table );
 #endif
