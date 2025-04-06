@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdbool.h>
+
+#include "first_run.h"
 #include "initial_run.h"
 #include "skeleton.h"
+
 
 
 
@@ -10,24 +13,25 @@ int main(void) {
   int IC=IC_INITIAL,DC=DC_INITIAL;
   table *macro_table = create_table();
   table *symbol_table = create_table();
-
-  // table *op_table = initialize_op_code_table();
+  table *data_table = create_table();
+  Constants *constants= initialize_constants();
   if (macro_table == NULL)
     {
       //TODO HANDLE ERROR
       return -1;
     }
 
-  char * file = "../tests/simple_macro_example.as";
+
+  char * file = "simple_macro_example.as";
   pre_macro = generate_file_name(file, PRE_MACRO_STAGE);
   macro = generate_file_name(file, MACRO_STAGE);
   label = generate_file_name(file, LABEL_STAGE);
   second = generate_file_name(file, SECOND_STAGE);
 
-  remove_spaces(file, pre_macro);
-  initial_run(pre_macro, macro,macro_table,symbol_table);
-  printf("\nThis is other macro_table\n");
-
+  char * temp = remove_extra_spaces_file(file);
+  initial_run(temp, macro,macro_table,symbol_table);
+  first_run(temp,"test",symbol_table,data_table,constants);
+  printf("\nThis is  macro_table\n");
   print_hash_table(macro_table);
   return 0;
 }

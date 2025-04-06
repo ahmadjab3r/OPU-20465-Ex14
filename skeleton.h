@@ -4,9 +4,15 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+
+#include "hashtable.h"
+
 #define LINE_LENGTH 80 /* Maybe add one more for /n doouble check that*/
 #define IC_INITIAL 100
 #define DC_INITIAL 0
+#define STRING_DEC ".string"
+#define DATA_DEC ".data"
+#define LABEL_DEC ":"
 #define MCRO "mcro"
 #define ENDMCRO "endmcro"
 #define PREC_FILE_ENDING ".prec"
@@ -20,4 +26,23 @@ enum STAGE{
   SECOND_STAGE,
 
 };
+typedef struct instruction{
+  int op_code;
+  int address_source;
+  int source_reg;
+  int address_dest;
+  int destination_reg;
+  int funct;
+  int A;
+  int R;
+  int E;
+};
+typedef struct instructions {
+
+};
+typedef struct Constants {
+        table *op_code_table;
+        table *registers_table;
+} Constants;
+
 #endif

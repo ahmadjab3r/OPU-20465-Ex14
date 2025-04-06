@@ -15,7 +15,7 @@ table* symbol_table)
 
   while (fgets(current_line, LINE_LENGTH, file) != NULL)
     {
-      printf("%s", current_line);
+      // printf("%s", current_line);
       if (strstr(current_line, MCRO) != NULL)
         {
           store_mcro(current_line, file, macro_table);
@@ -24,7 +24,7 @@ table* symbol_table)
   fclose(file);
   return 0;
 }
-int store_mcro(char *current_line, FILE *file, struct table *table)
+int store_mcro(char *current_line, FILE *file,  table *table)
 {
   char *macro_name,*token;
   char *macro_content= NULL;
@@ -45,7 +45,7 @@ int store_mcro(char *current_line, FILE *file, struct table *table)
           //TODO check if there's nothing after the word endmcro
           break;
         }
-      macro_content = copy_text(macro_content, current_line);
+      macro_content = copy_line(macro_content, current_line);
       if (macro_content == NULL)
         {
           //TODO HANDLE ERROR
