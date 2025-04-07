@@ -6,35 +6,62 @@
 #include "skeleton.h"
 
 
+ASFile *initialize_as_file(char *file_name) {
+    ASFile *as_file = malloc(sizeof(ASFile));
+    if (as_file == NULL) {
+        //TODO handle Error
+        return NULL;
+    }
+    as_file->file_name = strdup(file_name);
+    as_file->file_name_spaces = NULL;
+    as_file->file_name_macros = NULL;
+    as_file->file_name_ob = NULL;
+    as_file->lines = initialize_linked_list();
+    as_file->symbol_table = create_table();
+    as_file->data_table = create_table();
+    as_file->macro_table = create_table();
+    as_file->IC = IC_INITIAL;
+    as_file->DC = DC_INITIAL;
+    return as_file;
+}
 
+void free_as_file(ASFile **as_file, Constants **constants) {
+    if (as_file != NULL && *as_file != NULL) {
+        free((*as_file)->file_name);
+        free((*as_file)->file_name_spaces);
+        free((*as_file)->file_name_macros);
+        free((*as_file)->file_name_ob);
+        free_list(&(*as_file)->lines);
+        free_table(&(*as_file)->symbol_table);
+        free_table(&(*as_file)->data_table);
+        free_table(&(*as_file)->macro_table);
+        free(*as_file);
+        *as_file = NULL;
+    }
+    if (constants != NULL && *constants != NULL) {
+        free_table(&(*constants)->op_code_table);
+        free_table(&(*constants)->registers_table);
+        free(*constants);
+        *constants = NULL;
+    }
+}
 
 int main(void) {
-  char *pre_macro, *macro, *label, *second;
-  int IC=IC_INITIAL,DC=DC_INITIAL;
-  table *macro_table = create_table();
-  table *symbol_table = create_table();
-  table *data_table = create_table();
-  Constants *constants= initialize_constants();
-  if (macro_table == NULL)
-    {
-      //TODO HANDLE ERROR
-      return -1;
-    }
+    Constants *constants = initialize_constants();
+    char *file = "simple_macro_example.as";
+    ASFile *as_file = initialize_as_file(file);
 
+    as_file->file_name_spaces = remove_extra_spaces_file(file);
 
-  char * file = "simple_macro_example.as";
-  pre_macro = generate_file_name(file, PRE_MACRO_STAGE);
-  macro = generate_file_name(file, MACRO_STAGE);
-  label = generate_file_name(file, LABEL_STAGE);
-  second = generate_file_name(file, SECOND_STAGE);
-
-  char * temp = remove_extra_spaces_file(file);
-  initial_run(temp, macro,macro_table,symbol_table);
-  first_run(temp,"test",symbol_table,data_table,constants);
-  printf("\nThis is  macro_table\n");
-  print_hash_table(macro_table);
-  return 0;
+    initial_run(as_file);
+    first_run(as_file, constants);
+    printf("\nThis is  macro_table\n");
+    // print_hash_table(macro_table);
+    free_as_file(&as_file, &constants);
+    return 0;
 }
+
+
 // int testing_hash_table()
 // {
 //   struct MacroTable *m = create_table();

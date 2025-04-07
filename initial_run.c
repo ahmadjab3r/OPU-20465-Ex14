@@ -1,25 +1,24 @@
 #include "initial_run.h"
 
-int initial_run(char *file_name, char *output_file_name, table *macro_table,
-table* symbol_table)
+int initial_run(ASFile* current_as_file)
 {
   char current_line[LINE_LENGTH];
   FILE *file;
   //TODO check file name ?
-  file = fopen(file_name, "r");
+  file = fopen(current_as_file->file_name_spaces, "r");
   if (file == NULL)
     {
       //TODO HANDLE ERROR
       return -1;
     }
-
   while (fgets(current_line, LINE_LENGTH, file) != NULL)
     {
       // printf("%s", current_line);
       if (strstr(current_line, MCRO) != NULL)
         {
-          store_mcro(current_line, file, macro_table);
+          store_mcro(current_line, file, current_as_file->macro_table);
         }
+    printf("%s\n", current_line);
     }
   fclose(file);
   return 0;
@@ -61,7 +60,7 @@ int store_mcro(char *current_line, FILE *file,  table *table)
   printf("%s", macro_content);
   printf("-----------MCRO CONTENT END----------- \n");
 
-  if (insert_macro(table, macro_name, macro_content))
+  if (insert_macro(table, macro_name, macro_content) == NULL)
     {
       //TODO handle error
     }

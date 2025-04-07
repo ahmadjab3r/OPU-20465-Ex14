@@ -9,9 +9,9 @@
 #include "utilities.h"
 
 
+int initial_run(ASFile *current_as_file);
 
-int initial_run(char *file_name, char *output_file_name,table *macro_table,
-table *symbol_table);
-int store_mcro(char *line, FILE *fp, struct table *macro_table );
-bool handle_data(char * str, int line_number, table * table);
+int store_mcro(char *line, FILE *fp,  table *macro_table);
+
+bool handle_data(char *str, int line_number, table *table);
 #endif

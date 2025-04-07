@@ -59,7 +59,7 @@ void abrupt_close(int num_args, ...) {
             remove(str);
             free(str);
         }
-            /* next argument is a file pointer that needs to be closed */
+        /* next argument is a file pointer that needs to be closed */
         else {
             fp = va_arg(args, FILE*);
             fclose(fp);
@@ -71,35 +71,32 @@ void abrupt_close(int num_args, ...) {
 
 void allocate_new_file_name(char *file_name, char **edited_file_name,
                             int additional_size,
-                            int removal_size, char *ending)
-{
-  *edited_file_name = malloc(strlen(file_name) + additional_size);
-  if (*edited_file_name == NULL)
-    {
-      perror("Error allocating memory");
-      exit(EXIT_FAILURE);
+                            int removal_size, char *ending) {
+    *edited_file_name = malloc(strlen(file_name) + additional_size);
+    if (*edited_file_name == NULL) {
+        perror("Error allocating memory");
+        exit(EXIT_FAILURE);
     }
-  *edited_file_name = strcpy(*edited_file_name, file_name);
-  (*edited_file_name)[strlen(*edited_file_name) - removal_size] = '\0'; //TODO
-  strcat(*edited_file_name, ending);
+    *edited_file_name = strcpy(*edited_file_name, file_name);
+    (*edited_file_name)[strlen(*edited_file_name) - removal_size] =
+            '\0'; //TODO
+    strcat(*edited_file_name, ending);
 }
-char *generate_file_name(char *file_name, int stage)
-{
-  char *edited_file_name;
-  /* First stage, the current file name ends in .as */
-  if (stage == PRE_MACRO_STAGE)
-    {
-      allocate_new_file_name(file_name, &edited_file_name, 2, 3,
-                             PREC_FILE_ENDING);
+
+char *generate_file_name(char *file_name, int stage) {
+    char *edited_file_name;
+    /* First stage, the current file name ends in .as */
+    if (stage == PRE_MACRO_STAGE) {
+        allocate_new_file_name(file_name, &edited_file_name, 2, 3,
+                               PREC_FILE_ENDING);
     }
-  /* Second stage, the current file name ends in .prec */
-  if (stage == MACRO_STAGE)
-    {
-      allocate_new_file_name(file_name, &edited_file_name, 1, 5,
-                             MCRO_FILE_ENDING);
+    /* Second stage, the current file name ends in .prec */
+    if (stage == MACRO_STAGE) {
+        allocate_new_file_name(file_name, &edited_file_name, 1, 5,
+                               MCRO_FILE_ENDING);
     }
 
-  return edited_file_name;
+    return edited_file_name;
 }
 
 int is_space_or_tab(char c) {
@@ -110,7 +107,7 @@ int is_space_or_tab(char c) {
 void remove_spaces_next_to_comma(char *str) {
     char *ptr = str;
     /* If the line starts with ',' avoiding accessing outside the str */
-    if(*ptr == ','){
+    if (*ptr == ',') {
         return;
     }
     while ((ptr = strchr(ptr, ',')) != NULL) {
@@ -121,54 +118,49 @@ void remove_spaces_next_to_comma(char *str) {
                 /* Also space after the comma */
                 memmove(ptr, ptr + 1, strlen(ptr + 1) + 1);
             }
-        }
-        else if (*(ptr + 1) == ' ') {
+        } else if (*(ptr + 1) == ' ') {
             /* Only space after the comma */
             memmove(ptr + 1, ptr + 2, strlen(ptr + 2) + 1);
             ptr++;
-        }else{
+        } else {
             ptr++;
         }
     }
 }
+
 /**
  * This function removes all extra unnecessary white spaces from the file
  * @param file_name string of the input file name
  * @return string the name of the new file after white spaces removed
  */
-char *remove_spaces(char *file_name, char *output_file_name)
-{
-  FILE *input_file = fopen(file_name, "r");
-  if (input_file == NULL)
-    {
-      //TODO HANDLE ERROR
-      return NULL;
+char *remove_spaces(char *file_name, char *output_file_name) {
+    FILE *input_file = fopen(file_name, "r");
+    if (input_file == NULL) {
+        //TODO HANDLE ERROR
+        return NULL;
     }
 
-  FILE *output_file = fopen(output_file_name, "w");
-  if (output_file == NULL)
-    {
-      perror("Error creating file");
-      fclose(input_file);
-      free(output_file_name);
-      return NULL;
+    FILE *output_file = fopen(output_file_name, "w");
+    if (output_file == NULL) {
+        perror("Error creating file");
+        fclose(input_file);
+        free(output_file_name);
+        return NULL;
     }
 
-  int c;
-  int last_char = ' ';
-  while ((c = fgetc(input_file)) != EOF)
-    {
-      if (!isspace(c) || (isspace(c) && !isspace(last_char)))
-        {
-          fputc(c, output_file);
+    int c;
+    int last_char = ' ';
+    while ((c = fgetc(input_file)) != EOF) {
+        if (!isspace(c) || (isspace(c) && !isspace(last_char))) {
+            fputc(c, output_file);
         }
-      last_char = c;
+        last_char = c;
     }
 
-  fclose(input_file);
-  fclose(output_file);
+    fclose(input_file);
+    fclose(output_file);
 
-  return output_file_name;
+    return output_file_name;
 }
 
 void remove_extra_spaces_str(char str[]) {
@@ -248,7 +240,7 @@ char *remove_extra_spaces_file(char file_name[]) {
             fclose(fp_temp);
             return NULL;
         }
-            /* replacing a comment line with newline character */
+        /* replacing a comment line with newline character */
         else if (*str == ';') {
             *str = '\n';
             *(str + 1) = '\0';
@@ -258,7 +250,6 @@ char *remove_extra_spaces_file(char file_name[]) {
         }
         /* saving the changed line to the new file */
         fprintf(fp_temp, "%s", str);
-
     }
     fclose(fp);
     fclose(fp_temp);
@@ -282,21 +273,20 @@ char *copy_text(FILE *fp, fpos_t *pos, int length) {
     return str;
 }
 
-char *copy_line(char *macro_content, char *current_line)
-{
+char *copy_line(char *macro_content, char *current_line) {
     int length;
-    /** appends current_line to macro_content **/
-    if (macro_content == NULL)
-    {
+    if (macro_content == NULL) {
         macro_content = malloc(strlen(current_line) + 1);
+        if (macro_content == NULL) {
+            //TODO HANDLE ERROR
+            return NULL;
+        }
+        strcpy(macro_content, current_line);
+        return macro_content;
     }
-    else
-    {
-        length = strlen(macro_content) + strlen(current_line) + 1;
-        macro_content = realloc(macro_content, length);
-    }
-    if (macro_content == NULL)
-    {
+    length = strlen(macro_content) + strlen(current_line) + 1;
+    macro_content = realloc(macro_content, length);
+    if (macro_content == NULL) {
         //TODO HANDLE ERROR
         return NULL;
     }
@@ -304,37 +294,50 @@ char *copy_line(char *macro_content, char *current_line)
     return macro_content;
 }
 
-table *initialize_op_code_table(void)
-{
-  table *op_code_table = create_table();
-  if (op_code_table == NULL)
-    {
-      //TODO HANDLE ERROR
-      return NULL;
+table *initialize_op_code_table(void) {
+    table *op_code_table = create_table();
+    if (op_code_table == NULL) {
+        //TODO HANDLE ERROR
+        return NULL;
     }
-  insert_macro(op_code_table, "mov", "2");
-  insert_macro(op_code_table, "cmp", "2");
-  insert_macro(op_code_table, "add", "2");
-  insert_macro(op_code_table, "sub", "2");
-  insert_macro(op_code_table, "not", "1");
-  insert_macro(op_code_table, "clr", "1");
-  insert_macro(op_code_table, "lea", "2");
-  insert_macro(op_code_table, "inc", "1");
-  insert_macro(op_code_table, "dec", "1");
-  insert_macro(op_code_table, "jmp", "1");
-  insert_macro(op_code_table, "bne", "1");
-  insert_macro(op_code_table, "red", "1");
-  insert_macro(op_code_table, "prn", "1");
-  insert_macro(op_code_table, "jsr", "1");
-  insert_macro(op_code_table, "rts", "0");
-  insert_macro(op_code_table, "stop", "0");
-  return op_code_table;
+    insert_macro_with_instruction(op_code_table, "mov", "0", 0, "013",
+                                  "13");
+    insert_macro_with_instruction(op_code_table, "cmp", "1", 0, "013",
+                                  "013");
+    insert_macro_with_instruction(op_code_table, "add", "2", 1, "013",
+                                  "13");
+    insert_macro_with_instruction(op_code_table, "sub", "2", 2, "013",
+                                  "13");
+    insert_macro_with_instruction(op_code_table, "lea", "4", 0, "1",
+                                  "13");
+    insert_macro_with_instruction(op_code_table, "clr", "5", 1, "",
+                                  "13");
+    insert_macro_with_instruction(op_code_table, "not", "5", 2, "",
+                                  "13");
+    insert_macro_with_instruction(op_code_table, "inc", "5", 3, "",
+                                  "13");
+    insert_macro_with_instruction(op_code_table, "dec", "5", 4, "",
+                                  "13");
+    insert_macro_with_instruction(op_code_table, "jmp", "9", 1, "",
+                                  "12");
+    insert_macro_with_instruction(op_code_table, "bne", "9", 2, "",
+                                  "12");
+    insert_macro_with_instruction(op_code_table, "jsr", "9", 3, "",
+                                  "12");
+    insert_macro_with_instruction(op_code_table, "red", "12", 0, "",
+                                  "13");
+    insert_macro_with_instruction(op_code_table, "prn", "13", 0, "",
+                                  "013");
+    insert_macro_with_instruction(op_code_table, "rts", "14", 0, "",
+                                  "");
+    insert_macro_with_instruction(op_code_table, "stop", "15", 0, "",
+                                  "");
+    return op_code_table;
 }
-table *initialize_registers_table(void)
-{
+
+table *initialize_registers_table(void) {
     table *registers_table = create_table();
-    if (registers_table == NULL)
-    {
+    if (registers_table == NULL) {
         //TODO HANDLE ERROR
         return NULL;
     }
@@ -347,50 +350,42 @@ table *initialize_registers_table(void)
     insert_macro(registers_table, "r6", "6");
     insert_macro(registers_table, "r7", "7");
     return registers_table;
-
 }
-void print_hash_table(table *table)
-{
-  for (int i = 0; i < table->size; i++)
-    {
-      if (table->macros[i] != NULL)
-        {
-          printf("Index %d, ", i);
-          printf("Key: %s Value: %s\n", table->macros[i]->key,
-                 table->macros[i]->value);
-          if (table->macros[i]->next != NULL)
-            {
-              struct table_item *current_macro =
-                table->macros[i]->next;
-              while (current_macro != NULL)
-                {
-                  printf("          Key: %s Value: %s\n", current_macro->key,
-                         current_macro->value);
-                  current_macro = current_macro->next;
+
+void print_hash_table(table *table) {
+    for (int i = 0; i < table->size; i++) {
+        if (table->macros[i] != NULL) {
+            printf("Index %d, ", i);
+            printf("Key: %s Value: %s\n", table->macros[i]->key,
+                   table->macros[i]->value);
+            if (table->macros[i]->next != NULL) {
+                struct table_item *current_macro =
+                        table->macros[i]->next;
+                while (current_macro != NULL) {
+                    printf("          Key: %s Value: %s\n",
+                           current_macro->key,
+                           current_macro->value);
+                    current_macro = current_macro->next;
                 }
             }
         }
     }
 }
 
-Constants * initialize_constants(void)
-{
+Constants *initialize_constants(void) {
     Constants *constants = malloc(sizeof(Constants));
-    if (constants == NULL)
-    {
+    if (constants == NULL) {
         //TODO HANDLE ERROR
         return NULL;
     }
     constants->op_code_table = initialize_op_code_table();
-    if (constants->op_code_table == NULL)
-    {
+    if (constants->op_code_table == NULL) {
         //TODO HANDLE ERROR
         free(constants);
         return NULL;
     }
     constants->registers_table = initialize_registers_table();
-    if (constants->registers_table == NULL)
-    {
+    if (constants->registers_table == NULL) {
         //TODO HANDLE ERROR
         free(constants->op_code_table);
         free(constants);
@@ -399,3 +394,27 @@ Constants * initialize_constants(void)
     return constants;
 }
 
+int validate_number(char *str) {
+    //with negative sign
+    int i;
+    char *letter = str;
+    i = 0;
+    while (*letter != '\0') {
+        if (*letter != '-' && !isdigit(*letter)) {
+            //TODO handle ERROR
+            printf("ERRROR");
+        }
+        if (*letter == '-' && i != 0) {
+            //TODO handle error!
+        }
+        printf("token: %c\n", *letter);
+        letter++;
+        i++;
+    }
+
+    int number = strtol(str,NULL, 10);
+    if (strstr('-', str) != NULL) {
+        number = -number;
+    }
+    return number;
+}

@@ -40,18 +40,7 @@ bool handle_line(char *str, int *line_number, table *data_table) {
     } else {
         token = strtok(token, ", ");
         do {
-            char * test = token;
-            char *letter = test;
-            while(*letter!='\0') {
-                if (*letter != '-' && !isdigit(*letter)) {
-                    //TODO handle ERROR
-                    printf("ERRROR");
-
-                }
-                    printf("token: %c\n", *letter);
-                    letter++;
-            }
-            int number = atoi(token);
+            int number = validate_number(token);
             //todo handle number
             line_number++;
 
@@ -60,15 +49,74 @@ bool handle_line(char *str, int *line_number, table *data_table) {
 
     return true;
 }
+// First
+bool immediate_addressing(char *line, struct table_item *command ) {
 
-int first_run(char *file_name, char *output_file_name,
-              table *symbol_table, table *data_table,Constants *constants) {
+
+    return true;
+}
+
+//Second
+bool direct_addressing(char *line);
+//Third
+
+bool relative_addressing(char *line); //TODO change name
+//Fourth
+bool direct_register_addressing(char *line);
+
+
+void handle_instruction(char * line, ASFile * as_file,
+                       Constants * constants) { //TODO change return
+    printf("this is line! %s\n", line);
+    struct table_item *command = search_macro(constants->op_code_table, line);
+    if (command == NULL) {
+        //TODO HANDLE ERROR
+        printf("ERROR");
+        return;
+    }
+    bool source = strlen(command->inst_rule->source_addressing);
+    bool dest = strlen(command->inst_rule->dest_addressing);
+    char *token = strtok(NULL, ", \n");
+    if(strcmp(line, "stop") ==0  || strcmp(line,"rts") == 0 ) {
+        if(token != NULL) {
+            //TODO handle error!
+        }
+
+    }
+    if (token == NULL && source) {
+        //TODO HANDLE ERROR
+        printf("ERROR");
+        return;
+    }
+    if(token && *token == INSTRUCTION_NUMBER_SYMBOL) {
+        if(!immediate_addressing(token, command)) {
+            //TODO HANDLE ERROR
+            printf("ERROR");
+            return;
+        }
+    }
+    token = strtok(NULL, ", \n");
+    if (token == NULL) {
+        //TODO HANDLE ERROR
+        printf("ERROR");
+        return;
+    }
+
+
+
+
+
+    //Instruction cases
+
+}
+
+
+
+int first_run(ASFile* current_as_file,Constants *constants) {
     FILE *input_file, *output_file;
     struct table_item *item;
     char *token= NULL;
-    int IC = IC_INITIAL, DC = DC_INITIAL;
-
-    input_file = fopen(file_name, "r");
+    input_file = fopen(current_as_file->file_name_spaces, "r");
     if (input_file == NULL) {
         printf("Error opening file\n");
         return 1;
@@ -93,7 +141,7 @@ int first_run(char *file_name, char *output_file_name,
         if (strstr(line, LABEL_DEC)) {
             //String/data case
             if (strstr(line, STRING_DEC) || strstr(line, DATA_DEC)) {
-                handle_line(line, &line_number, data_table);
+                handle_line(line, &line_number, current_as_file->data_table);
             }
             //Checks if the rest is an instruction!
             token = strtok(NULL, " \n");
@@ -101,6 +149,7 @@ int first_run(char *file_name, char *output_file_name,
             if(item != NULL) {
                 //TODO HANDLE MACRO
                 printf("found macro\n");
+                handle_instruction(token, current_as_file, constants );
                 continue;
             }
             printf("label token %s\n", token);
