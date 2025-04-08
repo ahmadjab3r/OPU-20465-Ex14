@@ -13,10 +13,19 @@
 #define DC_INITIAL 0
 #define STRING_DEC ".string"
 #define DATA_DEC ".data"
+#define EXTERN_DEC ".extern"
+#define ENTRY_DEC ".entry"
+#define IMMEDIATE_ADDRESSING_SIGN '0'
+#define DIRECT_ADDRESSING_SIGN '1'
+#define RELATIVE_ADDRESSING_SIGN '2'
+#define REGISTER_ADDRESSING_SIGN '3'
+
+#define IMMEDIATE_ADDRESSING_SYMBOL '#'
+#define RELATIVE_ADDRESSING_SYMBOL "&"
 #define LABEL_DEC ":"
 #define MCRO "mcro"
-#define ENDMCRO "endmcro"
-#define INSTRUCTION_NUMBER_SYMBOL '#'
+#define ENDMCRO "mcroend"
+
 #define PREC_FILE_ENDING ".prec"
 #define MCRO_FILE_ENDING ".mcro"
 #define AS_FILE_ENDING ".as"
@@ -30,18 +39,15 @@ enum STAGE{
 };
 typedef struct instruction{
   int op_code;
-  int address_source;
+  int source_addressing;
   int source_reg;
-  int address_dest;
+  int destination_addressing;
   int destination_reg;
   int funct;
   int A;
   int R;
   int E;
-};
-typedef struct instructions {
-
-};
+}instruction;
 typedef struct ASFile {
     char *file_name; /* The name of the assembly file */
     char *file_name_spaces;

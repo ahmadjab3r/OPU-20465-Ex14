@@ -300,37 +300,37 @@ table *initialize_op_code_table(void) {
         //TODO HANDLE ERROR
         return NULL;
     }
-    insert_macro_with_instruction(op_code_table, "mov", "0", 0, "013",
+    insert_item_with_instructions(op_code_table, "mov", "0", 0, "013",
                                   "13");
-    insert_macro_with_instruction(op_code_table, "cmp", "1", 0, "013",
+    insert_item_with_instructions(op_code_table, "cmp", "1", 0, "013",
                                   "013");
-    insert_macro_with_instruction(op_code_table, "add", "2", 1, "013",
+    insert_item_with_instructions(op_code_table, "add", "2", 1, "013",
                                   "13");
-    insert_macro_with_instruction(op_code_table, "sub", "2", 2, "013",
+    insert_item_with_instructions(op_code_table, "sub", "2", 2, "013",
                                   "13");
-    insert_macro_with_instruction(op_code_table, "lea", "4", 0, "1",
+    insert_item_with_instructions(op_code_table, "lea", "4", 0, "1",
                                   "13");
-    insert_macro_with_instruction(op_code_table, "clr", "5", 1, "",
+    insert_item_with_instructions(op_code_table, "clr", "5", 1, "",
                                   "13");
-    insert_macro_with_instruction(op_code_table, "not", "5", 2, "",
+    insert_item_with_instructions(op_code_table, "not", "5", 2, "",
                                   "13");
-    insert_macro_with_instruction(op_code_table, "inc", "5", 3, "",
+    insert_item_with_instructions(op_code_table, "inc", "5", 3, "",
                                   "13");
-    insert_macro_with_instruction(op_code_table, "dec", "5", 4, "",
+    insert_item_with_instructions(op_code_table, "dec", "5", 4, "",
                                   "13");
-    insert_macro_with_instruction(op_code_table, "jmp", "9", 1, "",
+    insert_item_with_instructions(op_code_table, "jmp", "9", 1, "",
                                   "12");
-    insert_macro_with_instruction(op_code_table, "bne", "9", 2, "",
+    insert_item_with_instructions(op_code_table, "bne", "9", 2, "",
                                   "12");
-    insert_macro_with_instruction(op_code_table, "jsr", "9", 3, "",
+    insert_item_with_instructions(op_code_table, "jsr", "9", 3, "",
                                   "12");
-    insert_macro_with_instruction(op_code_table, "red", "12", 0, "",
+    insert_item_with_instructions(op_code_table, "red", "12", 0, "",
                                   "13");
-    insert_macro_with_instruction(op_code_table, "prn", "13", 0, "",
+    insert_item_with_instructions(op_code_table, "prn", "13", 0, "",
                                   "013");
-    insert_macro_with_instruction(op_code_table, "rts", "14", 0, "",
+    insert_item_with_instructions(op_code_table, "rts", "14", 0, "",
                                   "");
-    insert_macro_with_instruction(op_code_table, "stop", "15", 0, "",
+    insert_item_with_instructions(op_code_table, "stop", "15", 0, "",
                                   "");
     return op_code_table;
 }
@@ -341,26 +341,26 @@ table *initialize_registers_table(void) {
         //TODO HANDLE ERROR
         return NULL;
     }
-    insert_macro(registers_table, "r0", "0");
-    insert_macro(registers_table, "r1", "1");
-    insert_macro(registers_table, "r2", "2");
-    insert_macro(registers_table, "r3", "3");
-    insert_macro(registers_table, "r4", "4");
-    insert_macro(registers_table, "r5", "5");
-    insert_macro(registers_table, "r6", "6");
-    insert_macro(registers_table, "r7", "7");
+    insert_table_item(registers_table, "r0", "0");
+    insert_table_item(registers_table, "r1", "1");
+    insert_table_item(registers_table, "r2", "2");
+    insert_table_item(registers_table, "r3", "3");
+    insert_table_item(registers_table, "r4", "4");
+    insert_table_item(registers_table, "r5", "5");
+    insert_table_item(registers_table, "r6", "6");
+    insert_table_item(registers_table, "r7", "7");
     return registers_table;
 }
 
 void print_hash_table(table *table) {
     for (int i = 0; i < table->size; i++) {
-        if (table->macros[i] != NULL) {
+        if (table->bucket[i] != NULL) {
             printf("Index %d, ", i);
-            printf("Key: %s Value: %s\n", table->macros[i]->key,
-                   table->macros[i]->value);
-            if (table->macros[i]->next != NULL) {
+            printf("Key: %s Value: %s\n", table->bucket[i]->key,
+                   table->bucket[i]->value);
+            if (table->bucket[i]->next != NULL) {
                 struct table_item *current_macro =
-                        table->macros[i]->next;
+                        table->bucket[i]->next;
                 while (current_macro != NULL) {
                     printf("          Key: %s Value: %s\n",
                            current_macro->key,
@@ -394,7 +394,7 @@ Constants *initialize_constants(void) {
     return constants;
 }
 
-int validate_number(char *str) {
+bool validate_number(char *str, int *number) {
     //with negative sign
     int i;
     char *letter = str;
@@ -403,18 +403,20 @@ int validate_number(char *str) {
         if (*letter != '-' && !isdigit(*letter)) {
             //TODO handle ERROR
             printf("ERRROR");
+                return false;
         }
         if (*letter == '-' && i != 0) {
             //TODO handle error!
+                return false;
         }
         printf("token: %c\n", *letter);
         letter++;
         i++;
     }
 
-    int number = strtol(str,NULL, 10);
-    if (strstr('-', str) != NULL) {
-        number = -number;
+    *number = strtol(str,NULL, 10);
+    if (strstr(str,"-" ) != NULL) {
+        *number = *number * -1;
     }
-    return number;
+    return true;
 }

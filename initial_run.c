@@ -39,6 +39,7 @@ int store_mcro(char *current_line, FILE *file,  table *table)
 
   while (fgets(current_line, LINE_LENGTH, file) != NULL)
     {
+      char* result = strstr(current_line, ENDMCRO);
       if (strstr(current_line, ENDMCRO) != NULL)
         {
           //TODO check if there's nothing after the word endmcro
@@ -60,7 +61,7 @@ int store_mcro(char *current_line, FILE *file,  table *table)
   printf("%s", macro_content);
   printf("-----------MCRO CONTENT END----------- \n");
 
-  if (insert_macro(table, macro_name, macro_content) == NULL)
+  if (insert_table_item(table, macro_name, macro_content) == NULL)
     {
       //TODO handle error
     }

@@ -26,7 +26,7 @@ void print_hash_table(table *table);
 
 char *remove_extra_spaces_file(char file_name[]);
 
-int validate_number( char *str);
+bool validate_number( char *str, int *number);
 
 Constants *initialize_constants(void);
 

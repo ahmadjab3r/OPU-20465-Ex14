@@ -1,6 +1,6 @@
 #include "linked_list.h"
 
-LinkedList * initialize_linked_list() {
+LinkedList * initialize_linked_list(void) {
     LinkedList *linked_list = (LinkedList *)malloc(sizeof(LinkedList));
     if (linked_list == NULL) {
         //TODO handle Error
