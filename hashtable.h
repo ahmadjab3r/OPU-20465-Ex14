@@ -9,24 +9,32 @@
 #define PRIME_NUMBER 7
 
 typedef struct instruction_rules {
-    int op_code;
-    int funct;
-    char *source_addressing;
-    char *dest_addressing;
+  int op_code;
+  int funct;
+  char *source_addressing;
+  char *dest_addressing;
 } instruction_rules;
 
+typedef struct symbol_type {
+  int *extern_locations; //only relevant for .extern probably gonna change it //TODO
+  bool is_data;
+  bool is_entry;
+  bool is_extern;
+  bool is_code;
+} symbol_type;
 typedef struct table_item {
-    char *key;
-    char *value;
-    struct table_item *next;
-    instruction_rules* inst_rule;
-    int size;
+  char *key;
+  char *value;
+  struct table_item *next;
+  instruction_rules *inst_rule; //only relevant for instructions!
+  symbol_type *symbol; //only relevant for symbols
+  int size;
 } Macro;
 
 typedef struct table {
-    struct table_item **macros;
-    int size;
-    int count;
+  struct table_item **bucket;
+  int size;
+  int count;
 } table;
 
 /* * Creates a new hash table for storing macros.
@@ -42,18 +50,27 @@ struct table *create_table(void);
  */
 int hash_function(char *macro_name, int table_size);
 
-struct table_item *insert_macro(struct table *table, char *macro_name,
-                                char *macro_content);
+struct table_item *insert_table_item(table *table, char *item_name,
+                                char *item_content);
 
-int increase_table_size(struct table *table);
+int increase_table_size(table *table);
 
 struct table_item *
-search_macro(struct table *table, char *macro_name);
+search_table(table *table, char *key);
 
-void free_table(struct table **table);
+void free_table(table **table);
 
-struct table_item *insert_macro_with_instruction(table *table,
-    char *function_name,
-    char *function_content,
-    int funct,
-    char *source_addressing, char *dest_addressing);
+struct table_item *insert_item_with_instructions(table *table,
+                                                 char *function_name,
+                                                 char *function_content,
+                                                 int funct,
+                                                 char *source_addressing,
+                                                 char *dest_addressing);
+struct table_item *insert_item_with_symbol(table *table,
+                                                char *symbol_name,
+                                                char *symbol_location,
+                                                bool is_data,
+                                                bool is_entry,
+                                                bool is_extern,
+                                                bool is_code
+                                                );
