@@ -52,7 +52,7 @@ void print_lines(LinkedList *lines)
     Node *current = lines->head;
     while (current != NULL)
         {
-            printf("content %s: ,instruction: %d, lines: %d\n", current->content,
+            printf("key: %s, content: %s, instruction: %d, lines: %d\n",current->name, current->content,
             current->instruction,current->line);
             current=  current->next;
         }
