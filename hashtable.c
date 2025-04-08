@@ -38,7 +38,7 @@ int hash_function(char *key, int table_size)
 }
 
 struct table_item *insert_table_item(table *current_table, char *key,
-                                char *value)
+                                     char *value)
 {
   int index;
   struct table_item *new_item, *current_macro;
@@ -232,6 +232,7 @@ void free_table(struct table **current_table)
 struct table_item *insert_item_with_symbol(table *table,
                                            char *symbol_name,
                                            char *symbol_location,
+                                           int location,
                                            bool is_data,
                                            bool is_entry,
                                            bool is_extern,
@@ -249,6 +250,7 @@ struct table_item *insert_item_with_symbol(table *table,
       //TODO HANDLE ERROR
       return NULL;
     }
+  item->symbol->location = location;
   item->symbol->is_data = is_data;
   item->symbol->is_entry = is_entry;
   item->symbol->is_extern = is_extern;

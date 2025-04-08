@@ -17,6 +17,7 @@ typedef struct instruction_rules {
 
 typedef struct symbol_type {
   int *extern_locations; //only relevant for .extern probably gonna change it //TODO
+  int location;
   bool is_data;
   bool is_entry;
   bool is_extern;
@@ -69,6 +70,7 @@ struct table_item *insert_item_with_instructions(table *table,
 struct table_item *insert_item_with_symbol(table *table,
                                                 char *symbol_name,
                                                 char *symbol_location,
+                                                int location,
                                                 bool is_data,
                                                 bool is_entry,
                                                 bool is_extern,

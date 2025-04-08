@@ -5,5 +5,5 @@
 #include "utilities.h"
 
 int first_run(  ASFile* current_as_file,Constants *constants);
-bool handle_line(char * str, int *line_number, table * data_table) ;
+bool handle_line(ASFile * current_as_file, char * str) ;
 

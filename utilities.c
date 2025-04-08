@@ -399,6 +399,7 @@ bool validate_number(char *str, int *number) {
     int i;
     char *letter = str;
     i = 0;
+
     while (*letter != '\0') {
         if (*letter != '-' && !isdigit(*letter)) {
             //TODO handle ERROR
@@ -414,9 +415,6 @@ bool validate_number(char *str, int *number) {
         i++;
     }
 
-    *number = strtol(str,NULL, 10);
-    if (strstr(str,"-" ) != NULL) {
-        *number = *number * -1;
-    }
+    *number = (int) strtol(str,NULL, 10);
     return true;
 }

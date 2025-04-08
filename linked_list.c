@@ -23,7 +23,7 @@ Node *search_list(LinkedList *linked_list, char *name, int *found) {
     *found = 0;
     return NULL;
 }
-Node *add_node(char *name, char* content, int instruction, int line, bool declared,LinkedList* linked_list) {
+Node *add_node(char *name, char* content, int instruction, int *line, bool declared,LinkedList* linked_list) {
     Node *new_node = (Node *)malloc(sizeof(Node));
     if (new_node == NULL) {
         //TODO handle ERROR
@@ -32,7 +32,7 @@ Node *add_node(char *name, char* content, int instruction, int line, bool declar
     new_node->name = strdup(name);
     new_node->content = strdup(content);
     new_node->instruction = instruction;
-    new_node->line = line;
+    new_node->line = *line;
     new_node->declared = declared;
     new_node->next = NULL;
 
@@ -44,6 +44,7 @@ Node *add_node(char *name, char* content, int instruction, int line, bool declar
         linked_list->tail = new_node;
     }
     linked_list->size++;
+    (*line)++;
     return new_node;
 }
 void free_list(LinkedList **linked_list) {

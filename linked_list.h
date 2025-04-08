@@ -17,7 +17,7 @@ typedef struct LinkedList{
 } LinkedList;
 
 LinkedList* initialize_linked_list(void);
-Node *add_node(char *name, char* content, int instruction, int line, bool declared,LinkedList *linked_list);
+Node *add_node(char *name, char* content, int instruction, int *line, bool declared,LinkedList *linked_list);
 Node *search_list(LinkedList *linked_list, char *name, int *found);
 void free_list(LinkedList **linked_list);
 

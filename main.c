@@ -46,6 +46,17 @@ void free_as_file(ASFile **as_file, Constants **constants) {
     }
 }
 
+void print_lines(LinkedList *lines)
+{
+
+    Node *current = lines->head;
+    while (current != NULL)
+        {
+            printf("content %s: ,instruction: %d, lines: %d\n", current->content,
+            current->instruction,current->line);
+            current=  current->next;
+        }
+}
 int main(void) {
     Constants *constants = initialize_constants();
     char *file = "simple_macro_example.as";
@@ -55,7 +66,9 @@ int main(void) {
 
     initial_run(as_file);
     first_run(as_file, constants);
-    printf("\nThis is  macro_table\n");
+    printf("\nThis is  symbol_table\n");
+    print_hash_table(as_file->symbol_table);
+    print_lines(as_file->lines);
     // print_hash_table(macro_table);
     free_as_file(&as_file, &constants);
     return 0;
