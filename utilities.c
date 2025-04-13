@@ -20,6 +20,7 @@ int is_trim_space(int c) {
 }
 
 char *remove_spaces(char *file_name, char *output_file_name) {
+    int c, next;
     FILE *input_file = fopen(file_name, "r");
     if (input_file == NULL) {
             // TODO HANDLE ERROR
@@ -34,7 +35,6 @@ char *remove_spaces(char *file_name, char *output_file_name) {
             return NULL;
     }
 
-    int c, next;
 
     while ((c = fgetc(input_file)) != EOF) {
             // If current char is space-like, peek ahead to see if it's around a comma
@@ -298,3 +298,4 @@ int translate_instruction_address(instruction *instruction)
     result += instruction->E;
     return result;
 }
+

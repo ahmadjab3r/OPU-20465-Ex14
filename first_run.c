@@ -3,7 +3,7 @@ bool handle_entry_extern(ASFile *as_file, char *str)
 {
   /* type == true if entry, false if extern */
   bool type = strstr(str,ENTRY_DEC) != NULL;
-  char *symbol = strtok(NULL, " \n");
+  char *symbol = strtok(NULL, " \r\n");
   struct table_item * item = search_table(as_file->symbol_table, symbol);
   if (item)
     {
@@ -35,7 +35,7 @@ bool handle_entry_extern(ASFile *as_file, char *str)
           }
       }
   insert_item_with_symbol(as_file->symbol_table, symbol,
-                          type ? EXTERN_DEC : ENTRY_DEC,
+                          type ? ENTRY_DEC : EXTERN_DEC,
                           0,
                           false, type, !type, false);
   return true;
@@ -56,7 +56,7 @@ bool handle_line(ASFile *as_file, char *str, int with_label)
   bool start = false, end = false;
   /* current_case is true if .string, false if .data*/
   bool current_case;
-  char *token = strtok(str, " :\n");
+  char *token = strtok(str, " :\n\r");
   if (token == NULL)
     {
       return false;
@@ -69,7 +69,7 @@ bool handle_line(ASFile *as_file, char *str, int with_label)
   else if (with_label == 1)
     {
       symbol_name = token;
-      token = strtok(NULL, " \n");
+      token = strtok(NULL, " \n\r");
       if (token == NULL)
         {
           return false;
@@ -115,6 +115,7 @@ bool handle_line(ASFile *as_file, char *str, int with_label)
           if (start && end)
             {
               //TODO HANDLE ERROR!
+
               printf("ERROR");
             }
           else if (start && token[i] == '"')
@@ -135,16 +136,21 @@ bool handle_line(ASFile *as_file, char *str, int with_label)
               add_node(symbol_name, token, token[i], &as_file->IC,
                        true,
                        as_file->lines);
+
+              as_file->DC +=1;
+
             }
           //TODO handle character
           i++;
         }
       add_end_of_line(as_file, symbol_name);
+      as_file->DC +=1;
+
       //.data case
     }
   else
     {
-      token = strtok(token, ", ");
+      token = strtok(token, ", \r\n");
       do
         {
           int number;
@@ -155,8 +161,10 @@ bool handle_line(ASFile *as_file, char *str, int with_label)
           //todo handle number
           add_node(symbol_name, token, number, &as_file->IC,true,
                    as_file->lines);
+          as_file->DC +=1;
+
         }
-      while ((token = strtok(NULL, ", ")));
+      while ((token = strtok(NULL, ", \r\n")));
     }
 
   return true;
@@ -202,23 +210,23 @@ bool direct_addressing(ASFile *as_file, char *line,
   int address;
   struct table_item *item = search_table(
     as_file->symbol_table, line);
-  if (item)
-    {
-      if (item->symbol->is_extern)
-        {
-          // current_instruction->E = 1;
-          address = 1;
-          add_node(line, "Direct",
-                       address,
-                       &as_file->IC,true, as_file->lines);
-          return true;
-        }
-
-
-      // add_node(item->key, "Direct",
-      //          address,
-      //          &as_file->IC,true, as_file->lines);
-    }
+  // if (item)
+  //   {
+  //     if (item->symbol->is_extern)
+  //       {
+  //         // current_instruction->E = 1;
+  //         address = 1;
+  //         add_node(line, "Direct",
+  //                      address,
+  //                      &as_file->IC,false, as_file->lines);
+  //         return true;
+  //       }
+  //
+  //
+  //     // add_node(item->key, "Direct",
+  //     //          address,
+  //     //          &as_file->IC,true, as_file->lines);
+  //   }
   // else
     // {
       add_node(line, "Direct",
@@ -397,7 +405,7 @@ void handle_instruction(char *full_line, char *line, ASFile *as_file,
                          command->inst_rule->funct);
   bool source = strlen(command->inst_rule->source_addressing);
   bool dest = strlen(command->inst_rule->dest_addressing);
-  char *token = strtok(NULL, ", \n");
+  char *token = strtok(NULL, ", \r\n");
   /*this is also equal to !dest && !source */
   if (strcmp(line, "stop") == 0 || strcmp(line, "rts") == 0)
     {
@@ -422,7 +430,7 @@ void handle_instruction(char *full_line, char *line, ASFile *as_file,
             as_file,
             token, command, false, &current_instruction,
             constants);
-      token = strtok(NULL, ", \n");
+      token = strtok(NULL, ", \r\n");
       if (token != NULL)
         {
           printf(
@@ -442,7 +450,7 @@ void handle_instruction(char *full_line, char *line, ASFile *as_file,
           printf("ERROR");
           return;
         }
-      token = strtok(NULL, ", \n");
+      token = strtok(NULL, ", \r\n");
       if (dest && token == NULL)
         {
           //TODO HANDLE ERROR
@@ -466,7 +474,7 @@ void handle_instruction(char *full_line, char *line, ASFile *as_file,
 
 int first_run(ASFile *current_as_file, Constants *constants)
 {
-  FILE *input_file, *output_file;
+  FILE *input_file;
   struct table_item *item;
   char *temp = NULL;
   char *token = NULL;
@@ -482,7 +490,7 @@ int first_run(ASFile *current_as_file, Constants *constants)
       if (temp) free(temp);
       temp = strdup(line);
       //TODO check label dec
-      token = strtok(line, " \n");
+      token = strtok(line, " \r\n");
       if (token == NULL)
         {
           //TODO HANDLE ERROR
@@ -512,7 +520,7 @@ int first_run(ASFile *current_as_file, Constants *constants)
               handle_line(current_as_file, temp, 2);
             }
           //Checks if the rest is an instruction!
-          token = strtok(NULL, " \n");
+          token = strtok(NULL, " \r\n");
 
           item = search_table(constants->op_code_table, token);
           if (item != NULL)
@@ -537,4 +545,6 @@ int first_run(ASFile *current_as_file, Constants *constants)
             }
         }
     }
+  if (temp) free(temp);
+  fclose(input_file);
 }

@@ -250,10 +250,51 @@ struct table_item *insert_item_with_symbol(table *table,
       //TODO HANDLE ERROR
       return NULL;
     }
+  item->symbol->extern_locations_size =0;
+  item->symbol->extern_locations = NULL;
   item->symbol->location = location;
   item->symbol->is_data = is_data;
   item->symbol->is_entry = is_entry;
   item->symbol->is_extern = is_extern;
   item->symbol->is_code = is_code;
   return item;
+}
+bool insert_external( table *table, char *symbol_name,
+                      int location)
+{
+  struct table_item *item = search_table(
+    table, symbol_name);
+  if (!item) {
+    return false;
+  }
+      if (!item->symbol->is_extern)
+        {
+          //TODO handle error
+          return false;
+        }
+    //TODO add to external_locations
+    if (item->symbol->extern_locations == NULL)
+        {
+          item->symbol->extern_locations = malloc(
+            sizeof(int));
+          item->symbol->extern_locations[0] = location;
+        item->symbol->extern_locations_size++;
+
+        }
+      else
+        {
+          item->symbol->extern_locations = realloc(
+            item->symbol->extern_locations,
+            (item->symbol->extern_locations_size +1 ) * sizeof(int));
+        if (item->symbol->extern_locations == NULL)
+          {
+            //TODO HANDLE ERROR
+            return false;
+          }
+          item->symbol->extern_locations[item->symbol->extern_locations_size] = location;
+        item->symbol->extern_locations_size++;
+        }
+
+
+  return true;
 }
