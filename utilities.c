@@ -10,9 +10,75 @@ void *handle_malloc(long object_size) {
     }
     return object_ptr;
 }
+/**
+ * This function removes all extra unnecessary white spaces from the file
+ * @param file_name string of the input file name
+ * @return string the name of the new file after white spaces removed
+ */
+int is_trim_space(int c) {
+    return c == ' ' || c == '\t' || c == '\r';
+}
 
+char *remove_spaces(char *file_name, char *output_file_name) {
+    FILE *input_file = fopen(file_name, "r");
+    if (input_file == NULL) {
+            // TODO HANDLE ERROR
+            return NULL;
+    }
 
-char *add_new_file(char *file_name, char *ending) {
+    FILE *output_file = fopen(output_file_name, "w");
+    if (output_file == NULL) {
+            perror("Error creating file");
+            fclose(input_file);
+            free(output_file_name);
+            return NULL;
+    }
+
+    int c, next;
+
+    while ((c = fgetc(input_file)) != EOF) {
+            // If current char is space-like, peek ahead to see if it's around a comma
+            if (is_trim_space(c)) {
+                    long curr_pos = ftell(input_file);
+
+                    // Look ahead for next non-space character
+                    while ((next = fgetc(input_file)) != EOF && is_trim_space(next));
+
+                    if (next == ',') {
+                            // Skip this space — it's before a comma
+                            // Write the comma instead
+                            fputc(',', output_file);
+
+                            // Skip spaces after the comma
+                            while ((next = fgetc(input_file)) != EOF && is_trim_space(next));
+
+                            if (next != EOF) {
+                                    fputc(next, output_file);
+                            }
+                    } else {
+                            // Not around a comma — preserve the space
+                            fputc(c, output_file);
+                            fseek(input_file, curr_pos, SEEK_SET); // reset to where we left off
+                    }
+            } else if (c == ',') {
+                    // Check for spaces after comma
+                    fputc(',', output_file);
+                    while ((next = fgetc(input_file)) != EOF && is_trim_space(next));
+                    if (next != EOF) {
+                            fputc(next, output_file);
+                    }
+            } else {
+                    // Normal character
+                    fputc(c, output_file);
+            }
+    }
+
+    fclose(input_file);
+    fclose(output_file);
+    return output_file_name;
+}
+char *generate_file_name(char *file_name, char *ending) {
+    /* gets file name, finds the '.' and adds the new ending */
     char *c, *new_file_name;
     new_file_name = handle_malloc(LINE_LENGTH * sizeof(char));
     strcpy(new_file_name, file_name);
@@ -23,237 +89,7 @@ char *add_new_file(char *file_name, char *ending) {
     /* adds the ending of the new file name */
     strcat(new_file_name, ending);
     return new_file_name;
-}
 
-int copy_file(char *file_name_dest, char *file_name_orig) {
-    char str[LINE_LENGTH];
-    FILE *fp, *fp_dest;
-    fp = fopen(file_name_orig, "r");
-    if (fp == NULL) {
-        return 0;
-    }
-    fp_dest = fopen(file_name_dest, "w");
-    if (fp_dest == NULL) {
-        fclose(fp);
-        return 0;
-    }
-    while (fgets(str, LINE_LENGTH, fp) != NULL) {
-        fprintf(fp_dest, "%s", str);
-    }
-    fclose(fp);
-    fclose(fp_dest);
-    return 1;
-}
-
-void abrupt_close(int num_args, ...) {
-    int i;
-    char *str;
-    FILE *fp;
-    va_list args;
-    va_start(args, num_args);
-    for (i = 0; i < num_args; i++) {
-        /* next argument is a string whose allocated memory needs to be freed*/
-        if (strcmp(va_arg(args, char*), "%s") == 0) {
-            i++;
-            str = va_arg(args, char*);
-            remove(str);
-            free(str);
-        }
-        /* next argument is a file pointer that needs to be closed */
-        else {
-            fp = va_arg(args, FILE*);
-            fclose(fp);
-        }
-    }
-    va_end(args);
-}
-
-
-void allocate_new_file_name(char *file_name, char **edited_file_name,
-                            int additional_size,
-                            int removal_size, char *ending) {
-    *edited_file_name = malloc(strlen(file_name) + additional_size);
-    if (*edited_file_name == NULL) {
-        perror("Error allocating memory");
-        exit(EXIT_FAILURE);
-    }
-    *edited_file_name = strcpy(*edited_file_name, file_name);
-    (*edited_file_name)[strlen(*edited_file_name) - removal_size] =
-            '\0'; //TODO
-    strcat(*edited_file_name, ending);
-}
-
-char *generate_file_name(char *file_name, int stage) {
-    char *edited_file_name;
-    /* First stage, the current file name ends in .as */
-    if (stage == PRE_MACRO_STAGE) {
-        allocate_new_file_name(file_name, &edited_file_name, 2, 3,
-                               PREC_FILE_ENDING);
-    }
-    /* Second stage, the current file name ends in .prec */
-    if (stage == MACRO_STAGE) {
-        allocate_new_file_name(file_name, &edited_file_name, 1, 5,
-                               MCRO_FILE_ENDING);
-    }
-
-    return edited_file_name;
-}
-
-int is_space_or_tab(char c) {
-    /* Check if the char is a space or a tab */
-    return (isspace(c) && c != '\n');
-}
-
-void remove_spaces_next_to_comma(char *str) {
-    char *ptr = str;
-    /* If the line starts with ',' avoiding accessing outside the str */
-    if (*ptr == ',') {
-        return;
-    }
-    while ((ptr = strchr(ptr, ',')) != NULL) {
-        /* Space before the comma */
-        if (*(ptr - 1) == ' ') {
-            memmove(ptr - 1, ptr, strlen(ptr) + 1);
-            if (*(ptr) == ' ') {
-                /* Also space after the comma */
-                memmove(ptr, ptr + 1, strlen(ptr + 1) + 1);
-            }
-        } else if (*(ptr + 1) == ' ') {
-            /* Only space after the comma */
-            memmove(ptr + 1, ptr + 2, strlen(ptr + 2) + 1);
-            ptr++;
-        } else {
-            ptr++;
-        }
-    }
-}
-
-/**
- * This function removes all extra unnecessary white spaces from the file
- * @param file_name string of the input file name
- * @return string the name of the new file after white spaces removed
- */
-char *remove_spaces(char *file_name, char *output_file_name) {
-    FILE *input_file = fopen(file_name, "r");
-    if (input_file == NULL) {
-        //TODO HANDLE ERROR
-        return NULL;
-    }
-
-    FILE *output_file = fopen(output_file_name, "w");
-    if (output_file == NULL) {
-        perror("Error creating file");
-        fclose(input_file);
-        free(output_file_name);
-        return NULL;
-    }
-
-    int c;
-    int last_char = ' ';
-    while ((c = fgetc(input_file)) != EOF) {
-        if (!isspace(c) || (isspace(c) && !isspace(last_char))) {
-            fputc(c, output_file);
-        }
-        last_char = c;
-    }
-
-    fclose(input_file);
-    fclose(output_file);
-
-    return output_file_name;
-}
-
-void remove_extra_spaces_str(char str[]) {
-    /* i for original string, j for modified string */
-    int i, j;
-    char str_temp[LINE_LENGTH];
-    i = j = 0;
-    /* eliminating white-spaces in the beginning of the line */
-    while (is_space_or_tab(*(str + i))) {
-        i++;
-    }
-    while (*(str + i) != '\0') {
-        /* copying character */
-        while (!is_space_or_tab(*(str + i)) && *(str + i) != '\0') {
-            *(str_temp + j) = *(str + i);
-            i++;
-            j++;
-        }
-        /* if loop stopped because end of line char */
-        if (*(str + i) == '\0') {
-            break;
-        }
-        /* if loop stopped because of a white-space skipping them until another character is encountered*/
-        while (is_space_or_tab(*(str + i))) {
-            i++;
-        }
-        /* if stopped not because of end of line char then copy one space for all the others that were skipped */
-        if (!(*(str + i) == '\n' || *(str + i) == '\0')) {
-            *(str_temp + j) = ' ';
-            j++;
-        }
-    }
-    *(str_temp + j) = *(str + i);
-    *(str_temp + j + 1) = '\0';
-    remove_spaces_next_to_comma(str_temp);
-    strcpy(str, str_temp);
-}
-
-typedef struct location {
-    char *file_name;
-    int line_num;
-} location;
-
-
-char *remove_extra_spaces_file(char file_name[]) {
-    char *new_file_name;
-    char str[LINE_LENGTH];
-    int line_num;
-    FILE *fp, *fp_temp;
-    /* opening input file for reading */
-    fp = fopen(file_name, "r");
-    if (fp == NULL) {
-        // print_internal_error(ERROR_CODE_2);
-        return NULL;
-    }
-    /* saving new name for a temp file */
-    new_file_name = add_new_file(file_name, ".t01");
-    if (new_file_name == NULL) {
-        abrupt_close(2, "file", fp);
-        return NULL;
-    }
-    /* opening new file for writing */
-    fp_temp = fopen(new_file_name, "w");
-    if (fp_temp == NULL) {
-        abrupt_close(4, "file", fp, "%s", new_file_name);
-        return NULL;
-    }
-    /* reading each line of the input file and removing extra unnecessary white-spaces */
-    line_num = 0;
-    while (fgets(str, 999, fp) != NULL) {
-        line_num++;
-        if (strlen(str) > LINE_LENGTH) {
-            location as_file;
-            as_file.file_name = file_name;
-            as_file.line_num = line_num;
-            fclose(fp);
-            fclose(fp_temp);
-            return NULL;
-        }
-        /* replacing a comment line with newline character */
-        else if (*str == ';') {
-            *str = '\n';
-            *(str + 1) = '\0';
-        } else {
-            /* removing extra unnecessary white-spaces from the line */
-            remove_extra_spaces_str(str);
-        }
-        /* saving the changed line to the new file */
-        fprintf(fp_temp, "%s", str);
-    }
-    fclose(fp);
-    fclose(fp_temp);
-    return new_file_name;
 }
 
 char *copy_text(FILE *fp, fpos_t *pos, int length) {
@@ -356,15 +192,18 @@ void print_hash_table(table *table) {
     for (int i = 0; i < table->size; i++) {
         if (table->bucket[i] != NULL) {
             printf("Index %d, ", i);
-            printf("Key: %s Value: %s\n", table->bucket[i]->key,
-                   table->bucket[i]->value);
+            printf("Key: %s Value: %d\n", table->bucket[i]->key,
+                   table->bucket[i]->symbol->location);
+
             if (table->bucket[i]->next != NULL) {
                 struct table_item *current_macro =
                         table->bucket[i]->next;
                 while (current_macro != NULL) {
-                    printf("          Key: %s Value: %s\n",
+                        if (current_macro->symbol){
+                    printf("          Key: %s Value: %d\n",
                            current_macro->key,
-                           current_macro->value);
+                           current_macro->symbol->location);
+                        }
                     current_macro = current_macro->next;
                 }
             }
@@ -417,4 +256,45 @@ bool validate_number(char *str, int *number) {
 
     *number = (int) strtol(str,NULL, 10);
     return true;
+}
+/**
+ *
+ * @param value 21 bits value
+ * @param A
+ * @param R
+ * @param E
+ * @return
+ */
+int translate_address(int value, int A, int R, int E)
+
+{
+
+    int result=value<<1;
+    result += A;
+    result = result<<1;
+    result +=R;
+    result = result<<1;
+    result +=E;
+    return result;
+}
+int translate_instruction_address(instruction *instruction)
+{
+    int result = instruction->op_code;
+    result = result << 2;
+    result += instruction->source_addressing;
+    result = result << 3;
+    result += instruction->source_reg;
+    result = result << 2;
+    result += instruction->destination_addressing;
+    result = result << 3;
+    result += instruction->destination_reg;
+    result = result << 5;
+    result += instruction->funct;
+    result = result << 1;
+    result += instruction->A;
+    result = result << 1;
+    result += instruction->R;
+    result = result << 1;
+    result += instruction->E;
+    return result;
 }

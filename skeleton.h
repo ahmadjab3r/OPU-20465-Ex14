@@ -26,10 +26,13 @@
 #define MCRO "mcro"
 #define ENDMCRO "mcroend"
 
-#define PREC_FILE_ENDING ".prec"
-#define MCRO_FILE_ENDING ".mcro"
 #define AS_FILE_ENDING ".as"
+#define REMOVED_SPACES_FILE_ENDING ".prec"
+#define MACRO_FILE_ENDING ".am"
 #define OB_FILE_ENDING ".ob"
+#define ENT_FILE_ENDING ".ent"
+#define EXT_FILE_ENDING ".ext"
+
 enum STAGE{
   PRE_MACRO_STAGE,
   MACRO_STAGE,
@@ -53,9 +56,10 @@ typedef struct ASFile {
     char *file_name_spaces;
     char *file_name_macros;
     char *file_name_ob;
+    char *file_name_entries;
+    char *file_name_externals;
     LinkedList *lines;
     table *symbol_table;
-    table *data_table;
     table *macro_table;
     int IC;
     int DC;

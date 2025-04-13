@@ -3,77 +3,125 @@
 
 #include "first_run.h"
 #include "initial_run.h"
+#include "second_run.h"
 #include "skeleton.h"
 
-
-ASFile *initialize_as_file(char *file_name) {
-    ASFile *as_file = malloc(sizeof(ASFile));
-    if (as_file == NULL) {
-        //TODO handle Error
-        return NULL;
+ASFile *initialize_as_file(char *file_name)
+{
+  ASFile *as_file = malloc(sizeof(ASFile));
+  if (as_file == NULL)
+    {
+      //TODO handle Error
+      return NULL;
     }
-    as_file->file_name = strdup(file_name);
-    as_file->file_name_spaces = NULL;
-    as_file->file_name_macros = NULL;
-    as_file->file_name_ob = NULL;
-    as_file->lines = initialize_linked_list();
-    as_file->symbol_table = create_table();
-    as_file->data_table = create_table();
-    as_file->macro_table = create_table();
-    as_file->IC = IC_INITIAL;
-    as_file->DC = DC_INITIAL;
-    return as_file;
+  as_file->file_name = generate_file_name(file_name, AS_FILE_ENDING);
+  as_file->file_name_spaces = generate_file_name(
+    file_name, REMOVED_SPACES_FILE_ENDING);
+  as_file->file_name_macros = generate_file_name(file_name, MACRO_FILE_ENDING);
+  as_file->file_name_ob = generate_file_name(file_name, OB_FILE_ENDING);
+  as_file->file_name_entries = NULL;
+  as_file->file_name_externals = NULL;
+  as_file->lines = initialize_linked_list();
+  as_file->symbol_table = create_table();
+  as_file->macro_table = create_table();
+  as_file->IC = IC_INITIAL;
+  as_file->DC = DC_INITIAL;
+  return as_file;
 }
 
-void free_as_file(ASFile **as_file, Constants **constants) {
-    if (as_file != NULL && *as_file != NULL) {
-        free((*as_file)->file_name);
-        free((*as_file)->file_name_spaces);
-        free((*as_file)->file_name_macros);
-        free((*as_file)->file_name_ob);
-        free_list(&(*as_file)->lines);
-        free_table(&(*as_file)->symbol_table);
-        free_table(&(*as_file)->data_table);
-        free_table(&(*as_file)->macro_table);
-        free(*as_file);
-        *as_file = NULL;
+void free_as_file(ASFile **as_file, Constants **constants)
+{
+  if (as_file != NULL && *as_file != NULL)
+    {
+      free((*as_file)->file_name);
+      free((*as_file)->file_name_spaces);
+      free((*as_file)->file_name_macros);
+      free((*as_file)->file_name_ob);
+      free_list(&(*as_file)->lines);
+      free_table(&(*as_file)->symbol_table);
+      free_table(&(*as_file)->macro_table);
+      if ((*as_file)->file_name_entries != NULL)
+        {
+          free((*as_file)->file_name_entries);
+        }
+      if ((*as_file)->file_name_externals != NULL)
+        {
+          free((*as_file)->file_name_externals);
+        }
+      free(*as_file);
+      *as_file = NULL;
     }
-    if (constants != NULL && *constants != NULL) {
-        free_table(&(*constants)->op_code_table);
-        free_table(&(*constants)->registers_table);
-        free(*constants);
-        *constants = NULL;
+  if (constants != NULL && *constants != NULL)
+    {
+      free_table(&(*constants)->op_code_table);
+      free_table(&(*constants)->registers_table);
+      free(*constants);
+      *constants = NULL;
     }
+}
+
+/** function that receives an int which is 32 bits, prints the first 24 bits
+ * and the value of the first 21 bits **/
+void print_binary(int value)
+{
+  int i;
+  for (i = 23; i >= 0; i--)
+    {
+      printf("%d", (value >> i) & 1);
+    }
+  printf("\n");
+
+  /**prints the value of the first 21 bits**/
+  int mask = 0xFFFFF8; // 21 bits mask
+  int result = value & mask;
+  printf("first 21 bits: %d\n", result);
+  // printf("first 21 bits: ");
+  // for (i = 31; i >= 11; i--)
+  //     {
+  //         printf("%d", (value >> i) & 1);
+  //     }
+  // printf("\n");
 }
 
 void print_lines(LinkedList *lines)
 {
+  Node *current = lines->head;
+  while (current != NULL)
+    {
+      printf("key: %s, content: %s, instruction: %d, lines: %d\n",
+             current->name, current->content,
+             current->instruction, current->line);
+      print_binary(current->instruction);
 
-    Node *current = lines->head;
-    while (current != NULL)
-        {
-            printf("key: %s, content: %s, instruction: %d, lines: %d\n",current->name, current->content,
-            current->instruction,current->line);
-            current=  current->next;
-        }
-}
-int main(void) {
-    Constants *constants = initialize_constants();
-    char *file = "simple_macro_example.as";
-    ASFile *as_file = initialize_as_file(file);
-
-    as_file->file_name_spaces = remove_extra_spaces_file(file);
-
-    initial_run(as_file);
-    first_run(as_file, constants);
-    printf("\nThis is  symbol_table\n");
-    print_hash_table(as_file->symbol_table);
-    print_lines(as_file->lines);
-    // print_hash_table(macro_table);
-    free_as_file(&as_file, &constants);
-    return 0;
+      current = current->next;
+    }
 }
 
+int main(int argc, char **argv)
+{
+  if (argc != 2)
+    {
+      printf("ERROR: At least one file is required.\n");
+      return 1;
+    }
+  Constants *constants = initialize_constants();
+  for (int i = 1; i < argc; i++)
+    {
+      ASFile *as_file = initialize_as_file(argv[i]);
+      as_file->file_name_spaces = remove_spaces(as_file->file_name,as_file->file_name_spaces);
+
+      initial_run(as_file);
+      first_run(as_file, constants);
+      printf("#########\nThis is  symbol_table\n############");
+      print_hash_table(as_file->symbol_table);
+      second_run(as_file);
+      print_lines(as_file->lines);
+      // print_hash_table(macro_table);
+      free_as_file(&as_file, &constants);
+    }
+
+  return 0;
+}
 
 // int testing_hash_table()
 // {
