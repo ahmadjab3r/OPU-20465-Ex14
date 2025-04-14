@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define ALLOCATION_FAIL "ERROR: MEMORY ALLOCATION FAILED\n"
+
 #define TABLE_SIZE 50
 #define TABLE_MULTIPLIER 2
 #define TABLE_UPPER_LIMIT 0.7
@@ -31,10 +34,10 @@ typedef struct table_item {
   instruction_rules *inst_rule; //only relevant for instructions!
   symbol_type *symbol; //only relevant for symbols
   int size;
-} Macro;
+} table_item;
 
 typedef struct table {
-  struct table_item **bucket;
+  table_item **bucket;
   int size;
   int count;
 } table;

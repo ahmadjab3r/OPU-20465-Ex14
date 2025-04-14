@@ -116,7 +116,7 @@ bool handle_line(ASFile *as_file, char *str, int with_label)
             {
               //TODO HANDLE ERROR!
 
-              printf("ERROR");
+              // //printf("ERROR");
             }
           else if (start && token[i] == '"')
             {
@@ -132,7 +132,7 @@ bool handle_line(ASFile *as_file, char *str, int with_label)
             }
           else
             {
-              printf("char =%c", token[i]);
+              //printf("char =%c", token[i]);
               add_node(symbol_name, token, token[i], &as_file->IC,
                        true,
                        as_file->lines);
@@ -303,7 +303,7 @@ int direct_register_addressing(ASFile *as_file, char *line,
       return (int) strtol(item->value,NULL, 10);
     }
   return -1;
-  // printf()
+  // //printf()
 }
 
 /**
@@ -320,7 +320,7 @@ int check_addressing_type(ASFile *as_file, char *line,
   /* type = true if source, false if dest */
   if (*line == IMMEDIATE_ADDRESSING_SYMBOL)
     {
-      printf("hi");
+      //printf("hi");
 
       if (immediate_addressing(as_file, line, command, type))
         {
@@ -389,13 +389,13 @@ void handle_instruction(char *full_line, char *line, ASFile *as_file,
 {
   instruction current_instruction;
   //TODO change return
-  printf("this is token! %s\n", line);
+  //printf("this is token! %s\n", line);
   struct table_item *command = search_table(
     constants->op_code_table, line);
   if (command == NULL)
     {
       //TODO HANDLE ERROR
-      printf("ERROR");
+      //printf("ERROR");
       return;
     }
   Node *node = add_node(line, line, 0, &as_file->IC,true,
@@ -420,7 +420,7 @@ void handle_instruction(char *full_line, char *line, ASFile *as_file,
   if (token == NULL && source)
     {
       //TODO HANDLE ERROR
-      printf("ERROR");
+      //printf("ERROR");
       return;
     }
   if (dest && !source)
@@ -433,8 +433,8 @@ void handle_instruction(char *full_line, char *line, ASFile *as_file,
       token = strtok(NULL, ", \r\n");
       if (token != NULL)
         {
-          printf(
-            "ERROR! operand cant take more than one argument\n");
+          //printf(
+            //"ERROR! operand cant take more than one argument\n");
           //TODO handle error
           return;
         }
@@ -447,14 +447,14 @@ void handle_instruction(char *full_line, char *line, ASFile *as_file,
       if (current_instruction.source_addressing == -1)
         {
           //TODO HANDLE ERROR
-          printf("ERROR");
+          //printf("ERROR");
           return;
         }
       token = strtok(NULL, ", \r\n");
       if (dest && token == NULL)
         {
           //TODO HANDLE ERROR
-          printf("ERROR");
+          //printf("ERROR");
           return;
         }
       current_instruction.destination_addressing =
@@ -464,7 +464,7 @@ void handle_instruction(char *full_line, char *line, ASFile *as_file,
       if (current_instruction.destination_addressing == -1)
         {
           //TODO HANDLE ERROR
-          printf("ERROR");
+          //printf("ERROR");
           return;
         }
     }
@@ -481,7 +481,7 @@ int first_run(ASFile *current_as_file, Constants *constants)
   input_file = fopen(current_as_file->file_name_spaces, "r");
   if (input_file == NULL)
     {
-      printf("Error opening file\n");
+      //printf("Error opening file\n");
       return 1;
     }
   char line[LINE_LENGTH];
@@ -496,7 +496,7 @@ int first_run(ASFile *current_as_file, Constants *constants)
           //TODO HANDLE ERROR
           continue;
         }
-      printf("token: %s\n", token);
+      //printf("token: %s\n", token);
       item = search_table(constants->op_code_table, token);
       //TODO instruction case
       if (item != NULL)
@@ -504,7 +504,7 @@ int first_run(ASFile *current_as_file, Constants *constants)
           handle_instruction(temp, token, current_as_file,
                              constants);
           //TODO HANDLE INSTRUCTION
-          printf("found INSTRUCTION\n");
+          //printf("found INSTRUCTION\n");
           continue;
         }
       if (strstr(line, LABEL_DEC))
@@ -530,7 +530,7 @@ int first_run(ASFile *current_as_file, Constants *constants)
                                  constants);
               continue;
             }
-          printf("label token %s\n", token);
+          //printf("label token %s\n", token);
         }
       else
         {

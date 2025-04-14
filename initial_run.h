@@ -9,7 +9,7 @@
 #include "utilities.h"
 
 
-int initial_run(ASFile *current_as_file);
+void initial_run(ASFile *current_as_file);
 
 int store_mcro(char *line, FILE *fp,  table *macro_table);
 

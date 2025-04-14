@@ -1,10 +1,11 @@
-CFLAGS = -ansi -Wall -pedantic
+CFLAGS = -ansi -Wall -pedantic -g
 CC = gcc
+DEPS = assembler.o
+assembler: $(DEPS)
+	$(CC) -g $(CFLAGS) -o $@ $(DEPS)
 
-main.o: main.c
-	$(CC) $(CFLAGS) -c main.c
 
 
 
 clean:
-	rm -f letters.o letters xy_bits xy_bits.o
+	rm

@@ -8,6 +8,14 @@
 #include "hashtable.h"
 #include "linked_list.h"
 
+
+/* Messages */
+#define ERROR_INVALID_FILE "ERROR: Failed to open file %s"
+#define ERROR_MEM_FAILED "ERROR: Failed to allocate memory"
+#define ERROR_INVALID_MACRO "ERROR: Invalid macro definition"
+
+
+
 #define LINE_LENGTH 80 /* Maybe add one more for /n doouble check that*/
 #define IC_INITIAL 100
 #define DC_INITIAL 0
@@ -15,13 +23,18 @@
 #define DATA_DEC ".data"
 #define EXTERN_DEC ".extern"
 #define ENTRY_DEC ".entry"
+
 #define IMMEDIATE_ADDRESSING_SIGN '0'
 #define DIRECT_ADDRESSING_SIGN "1"
 #define RELATIVE_ADDRESSING_SIGN "2"
 #define REGISTER_ADDRESSING_SIGN "3"
 
+#define DIRECT_ADDRESSING_WORD "Direct"
+#define RELATIVE_ADDRESSING_WORD "Relative"
+
 #define IMMEDIATE_ADDRESSING_SYMBOL '#'
 #define RELATIVE_ADDRESSING_SYMBOL "&"
+
 #define LABEL_DEC ":"
 #define MCRO "mcro"
 #define ENDMCRO "mcroend"
@@ -63,6 +76,7 @@ typedef struct ASFile {
     table *macro_table;
     int IC;
     int DC;
+    bool is_valid;
 }ASFile;
 typedef struct Constants {
         table *op_code_table;

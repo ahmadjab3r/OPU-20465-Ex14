@@ -10,6 +10,7 @@ void *handle_malloc(long object_size) {
     }
     return object_ptr;
 }
+
 /**
  * This function removes all extra unnecessary white spaces from the file
  * @param file_name string of the input file name
@@ -20,63 +21,43 @@ int is_trim_space(int c) {
 }
 
 char *remove_spaces(char *file_name, char *output_file_name) {
-    int c, next;
-    FILE *input_file = fopen(file_name, "r");
+    int c,in_word;
+    FILE *output_file, *input_file = fopen(file_name, "r");
     if (input_file == NULL) {
-            // TODO HANDLE ERROR
-            return NULL;
+        perror("Error opening input file");
+        return NULL;
     }
 
-    FILE *output_file = fopen(output_file_name, "w");
+    output_file = fopen(output_file_name, "w");
     if (output_file == NULL) {
-            perror("Error creating file");
-            fclose(input_file);
-            free(output_file_name);
-            return NULL;
+        perror("Error creating output file");
+        fclose(input_file);
+        return NULL;
     }
-
-
+    in_word = 0;
     while ((c = fgetc(input_file)) != EOF) {
-            // If current char is space-like, peek ahead to see if it's around a comma
-            if (is_trim_space(c)) {
-                    long curr_pos = ftell(input_file);
-
-                    // Look ahead for next non-space character
-                    while ((next = fgetc(input_file)) != EOF && is_trim_space(next));
-
-                    if (next == ',') {
-                            // Skip this space — it's before a comma
-                            // Write the comma instead
-                            fputc(',', output_file);
-
-                            // Skip spaces after the comma
-                            while ((next = fgetc(input_file)) != EOF && is_trim_space(next));
-
-                            if (next != EOF) {
-                                    fputc(next, output_file);
-                            }
-                    } else {
-                            // Not around a comma — preserve the space
-                            fputc(c, output_file);
-                            fseek(input_file, curr_pos, SEEK_SET); // reset to where we left off
-                    }
-            } else if (c == ',') {
-                    // Check for spaces after comma
-                    fputc(',', output_file);
-                    while ((next = fgetc(input_file)) != EOF && is_trim_space(next));
-                    if (next != EOF) {
-                            fputc(next, output_file);
-                    }
-            } else {
-                    // Normal character
-                    fputc(c, output_file);
+        if (is_trim_space(c)) {
+            if (in_word) {
+                fputc(' ', output_file); // write a single space
+                in_word = 0;
             }
+        } else if (c == ',') {
+            fputc(',', output_file); // write comma with no space
+            in_word = 0;
+        } else if (c == '\n') {
+            fputc('\n', output_file); // preserve newlines
+            in_word = 0;
+        } else {
+            fputc(c, output_file); // normal character
+            in_word = 1;
+        }
     }
-
     fclose(input_file);
     fclose(output_file);
     return output_file_name;
 }
+
+
 char *generate_file_name(char *file_name, char *ending) {
     /* gets file name, finds the '.' and adds the new ending */
     char *c, *new_file_name;
@@ -89,7 +70,6 @@ char *generate_file_name(char *file_name, char *ending) {
     /* adds the ending of the new file name */
     strcat(new_file_name, ending);
     return new_file_name;
-
 }
 
 char *copy_text(FILE *fp, fpos_t *pos, int length) {
@@ -199,11 +179,11 @@ void print_hash_table(table *table) {
                 struct table_item *current_macro =
                         table->bucket[i]->next;
                 while (current_macro != NULL) {
-                        if (current_macro->symbol){
-                    printf("          Key: %s Value: %d\n",
-                           current_macro->key,
-                           current_macro->symbol->location);
-                        }
+                    if (current_macro->symbol) {
+                        printf("          Key: %s Value: %d\n",
+                               current_macro->key,
+                               current_macro->symbol->location);
+                    }
                     current_macro = current_macro->next;
                 }
             }
@@ -243,11 +223,11 @@ bool validate_number(char *str, int *number) {
         if (*letter != '-' && !isdigit(*letter)) {
             //TODO handle ERROR
             printf("ERRROR");
-                return false;
+            return false;
         }
         if (*letter == '-' && i != 0) {
             //TODO handle error!
-                return false;
+            return false;
         }
         printf("token: %c\n", *letter);
         letter++;
@@ -257,6 +237,7 @@ bool validate_number(char *str, int *number) {
     *number = (int) strtol(str,NULL, 10);
     return true;
 }
+
 /**
  *
  * @param value 21 bits value
@@ -265,20 +246,17 @@ bool validate_number(char *str, int *number) {
  * @param E
  * @return
  */
-int translate_address(int value, int A, int R, int E)
-
-{
-
-    int result=value<<1;
+int translate_address(int value, int A, int R, int E) {
+    int result = value << 1;
     result += A;
-    result = result<<1;
-    result +=R;
-    result = result<<1;
-    result +=E;
+    result = result << 1;
+    result += R;
+    result = result << 1;
+    result += E;
     return result;
 }
-int translate_instruction_address(instruction *instruction)
-{
+
+int translate_instruction_address(instruction *instruction) {
     int result = instruction->op_code;
     result = result << 2;
     result += instruction->source_addressing;
@@ -298,4 +276,3 @@ int translate_instruction_address(instruction *instruction)
     result += instruction->E;
     return result;
 }
-

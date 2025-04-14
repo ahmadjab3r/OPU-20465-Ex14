@@ -27,6 +27,7 @@ ASFile *initialize_as_file(char *file_name) {
     as_file->macro_table = create_table();
     as_file->IC = IC_INITIAL;
     as_file->DC = DC_INITIAL;
+    as_file->is_valid = true;
     return as_file;
 }
 
@@ -87,28 +88,30 @@ void print_lines(LinkedList *lines) {
                current->name, current->content,
                current->instruction, current->line);
         print_binary(current->instruction);
-
         current = current->next;
     }
 }
 
 int main(int argc, char **argv) {
+    ASFile *as_file;
     if (argc < 2) {
         printf("ERROR: At least one file is required.\n");
         return 1;
     }
     Constants *constants = initialize_constants();
     for (int i = 1; i < argc; i++) {
-        ASFile *as_file = initialize_as_file(argv[i]);
+        as_file = initialize_as_file(argv[i]);
         as_file->file_name_spaces = remove_spaces(
             as_file->file_name, as_file->file_name_spaces);
-
         initial_run(as_file);
+        if(!as_file->is_valid) {
+            continue;
+        }
         first_run(as_file, constants);
-        printf("#########\nThis is  symbol_table\n############");
-        print_hash_table(as_file->symbol_table);
+        // printf("#########\nThis is  symbol_table\n############");
+        // print_hash_table(as_file->symbol_table);
         second_run(as_file);
-        print_lines(as_file->lines);
+        // print_lines(as_file->lines);
         // print_hash_table(macro_table);
         free_as_file(&as_file);
     }
