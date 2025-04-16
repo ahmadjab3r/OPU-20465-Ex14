@@ -1,72 +1,146 @@
-#include "first_run.h"
-bool handle_entry_extern(ASFile *as_file, char *str)
+#include "Header Files/first_run.h"
+int handle_entry_extern(as_file *current_as_file, char *str)
 {
   /* type == true if entry, false if extern */
-  bool type = strstr(str,ENTRY_DEC) != NULL;
-  char *symbol = strtok(NULL, " \r\n");
-  struct table_item * item = search_table(as_file->symbol_table, symbol);
+  char *symbol;
+  table_item *item;
+  int type = strstr(str,ENTRY_DEC) != NULL;
+  symbol = strtok(NULL, " \r\n");
+  item = search_table(current_as_file->symbol_table, symbol);
   if (item)
     {
       if (!type)
         {
-          //TODO handle error, cannot be extern and already exists.
+          /* extern and exists already */
+          printf(ERROR_DUPLICATE_SYMBOL_LABEL, symbol);
+          current_as_file->is_valid = false;
           return false;
         }
-      //TODO cannot be multiple declaration of entry
-      //TODO check if normal can also be inserted afterwards as entry
+
       if (item->symbol->is_entry)
         {
+          /*entry and exists already*/
+          printf(ERROR_DUPLICATE_SYMBOL_LABEL, symbol);
+          current_as_file->is_valid = false;
           return false;
         }
-      item->symbol->is_entry= true;
+      item->symbol->is_entry = true;
       return true;
     }
   /*This will allow us to create entry and external files only if they exist!  */
   if (type)
     {
-      if (as_file->file_name_entries == NULL){
-      as_file->file_name_entries = generate_file_name(as_file->file_name, ENT_FILE_ENDING);
-      }
-    } else
-      {
-        if (as_file->file_name_externals == NULL)
-          {
-            as_file->file_name_externals = generate_file_name(as_file->file_name, EXT_FILE_ENDING);
-          }
-      }
-  insert_item_with_symbol(as_file->symbol_table, symbol,
+      if (current_as_file->file_name_entries == NULL)
+        {
+          current_as_file->file_name_entries = generate_file_name(
+            current_as_file->file_name, ENT_FILE_ENDING);
+        }
+    }
+  else
+    {
+      if (current_as_file->file_name_externals == NULL)
+        {
+          current_as_file->file_name_externals = generate_file_name(
+            current_as_file->file_name, EXT_FILE_ENDING);
+        }
+    }
+  insert_item_with_symbol(current_as_file->symbol_table, symbol,
                           type ? ENTRY_DEC : EXTERN_DEC,
                           0,
                           false, type, !type, false);
   return true;
-
-
-
 }
 
-void add_end_of_line(ASFile *as_file, char *symbol_name)
+void add_end_of_line(as_file *current_as_file, char *symbol_name)
 {
-  add_node(symbol_name, "END OF LINE", 0, &as_file->IC, false,
-           as_file->lines);
+  add_node(symbol_name, "END OF LINE", 0, &current_as_file->IC, false,
+           current_as_file->lines);
 }
-
-bool handle_line(ASFile *as_file, char *str, int with_label)
+int handle_data_inside(as_file *current_as_file, char *symbol_name, char
+                        **token)
 {
-  char *symbol_type, *symbol_name = "NO LABEL";
-  bool start = false, end = false;
+  int current_case, start = false, end = false, i =0;
+  current_case = strcmp(*token, STRING_DEC) == 0;
+  *token = strtok(NULL, " \t\r\n");
+  /* String case */
+  if (current_case)
+    {
+      while (strlen(*token) != i)
+        {
+          if (start && end)
+            {
+              /* there was still text after quotation marks  ' " ' */
+              current_as_file->is_valid = false;
+              printf(ERROR_INVALID_STRING_DECLARATION, *token);
+            }
+          else if (start && (*token)[i] == '"')
+            {
+              end = true;
+            }
+          else if ((*token)[i] == '"')
+            {
+              if (i != 0)
+                {
+                  /* there was text before quotation marks */
+                  current_as_file->is_valid = false;
+                  printf(ERROR_INVALID_STRING_DECLARATION, *token);
+                  return false;
+                }
+              start = true;
+            }
+          else
+            {
+              add_node(symbol_name, *token, (*token)[i], &current_as_file->IC,
+                       true,
+                       current_as_file->lines);
+              current_as_file->DC += 1;
+            }
+          i++;
+        }
+      if (!start)return false;
+      add_end_of_line(current_as_file, symbol_name);
+      current_as_file->DC += 1;
+    }
+  else
+    {
+      /*.data case*/
+      *token = strtok(*token, ", \r\n");
+      do
+        {
+          int number;
+          if (!validate_number(*token, &number))
+            {
+              current_as_file->is_valid = false;
+              printf(ERROR_INVALID_STRING_DECLARATION, *token);
+              return false;
+            }
+          add_node(symbol_name, *token, number, &current_as_file->IC,true,
+                   current_as_file->lines);
+          current_as_file->DC += 1;
+        }
+      while ((*token = strtok(NULL, ", \r\n")));
+    }
+  return true;
+}
+int handle_line(as_file *current_as_file, char *str, int with_label)
+{
+  char *symbol_type, *symbol_name, *token;
+  table_item *item;
   /* current_case is true if .string, false if .data*/
-  bool current_case;
-  char *token = strtok(str, " :\n\r");
+  symbol_name = NO_LABEL;
+  token = strtok(str, " :\n\r");
   if (token == NULL)
     {
+      current_as_file->is_valid = false;
+      printf(ERROR_INVALID_LABEL, str);
       return false;
     }
 
-  if (with_label == 2)
+  if (with_label == LABEL_ALONE)
     {
       symbol_name = token;
     }
-  else if (with_label == 1)
+  else if (with_label == LABEL_WITH_VARIABLE)
     {
       symbol_name = token;
       token = strtok(NULL, " \n\r");
@@ -75,235 +149,142 @@ bool handle_line(ASFile *as_file, char *str, int with_label)
           return false;
         }
     }
- if (with_label !=0 ){
-  symbol_type = token;
-  struct table_item *item = search_table(
-    as_file->symbol_table, symbol_name);
-  if (item)
+  if (with_label != LABEL_WITHOUT_VARIABLE)
     {
-      if (item->symbol->is_entry)
+      symbol_type = token;
+      item = search_table(
+        current_as_file->symbol_table, symbol_name);
+      if (item)
         {
-          item->symbol->is_data = true;
-          item->symbol->location =   as_file->IC;
-
-        }
-      else
-        {
-          //TODO handle Error!
-          return false;
-        }
-    } else{
-
-  insert_item_with_symbol(as_file->symbol_table, symbol_name,
-                          symbol_type,
-                          as_file->IC,
-                          true, false, false, false);
-    }
-  if (with_label == 2)
-    {
-      return true;
-    }
- }
-  current_case = strcmp(token, STRING_DEC) == 0;
-  token = strtok(NULL, " \t\r\n");
-  /* String case */
-  int i = 0;
-  if (current_case)
-    {
-      while (strlen(token) != i)
-        {
-          if (start && end)
+          if (item->symbol->is_entry)
             {
-              //TODO HANDLE ERROR!
-
-              // //printf("ERROR");
-            }
-          else if (start && token[i] == '"')
-            {
-              end = true;
-            }
-          else if (token[i] == '"')
-            {
-              if (i != 0)
-                {
-                  //TODO handle error! ' " ' was found way later!
-                }
-              start = true;
+              /*TODO understand this*/
+              item->symbol->is_data = true;
+              item->symbol->location = current_as_file->IC;
             }
           else
             {
-              //printf("char =%c", token[i]);
-              add_node(symbol_name, token, token[i], &as_file->IC,
-                       true,
-                       as_file->lines);
-
-              as_file->DC +=1;
-
+              current_as_file->is_valid = false;
+              printf(ERROR_DUPLICATE_SYMBOL_LABEL, symbol_name);
+              return false;
             }
-          //TODO handle character
-          i++;
         }
-      add_end_of_line(as_file, symbol_name);
-      as_file->DC +=1;
-
-      //.data case
-    }
-  else
-    {
-      token = strtok(token, ", \r\n");
-      do
+      else
         {
-          int number;
-          if (validate_number(token, &number))
-            {
-              //TODO handle error
-            }
-          //todo handle number
-          add_node(symbol_name, token, number, &as_file->IC,true,
-                   as_file->lines);
-          as_file->DC +=1;
-
+          insert_item_with_symbol(current_as_file->symbol_table, symbol_name,
+                                  symbol_type,
+                                  current_as_file->IC,
+                                  true, false, false, false);
         }
-      while ((token = strtok(NULL, ", \r\n")));
+      if (with_label == LABEL_ALONE)
+        {
+          return true;
+        }
     }
+  handle_data_inside(current_as_file, symbol_name, &token);
 
   return true;
 }
 
-// First
-//
-bool immediate_addressing(ASFile *as_file, char *line,
-                          struct table_item *command,bool type)
+int immediate_addressing(as_file *as_file, char *line,
+                          table_item *command,int type)
 {
+  int number, address;
   if (type && command->inst_rule->source_addressing[0] !=
       IMMEDIATE_ADDRESSING_SIGN)
     {
-      //TODO HANDLE ERROR
+      printf(ERROR_OPERAND_INVALID_IMMEDIATE_ADDRESSING, line);
       return false;
     }
+
   if (!type && command->inst_rule->dest_addressing[0] !=
       IMMEDIATE_ADDRESSING_SIGN)
     {
-      //TODO HANDLE ERROR
+      printf(ERROR_OPERAND_INVALID_IMMEDIATE_ADDRESSING, line);
       return false;
     }
-  int number;
   /* Skips over '#' sign' , DONT DELETEEEEE*/
   line++;
   if (!validate_number(line, &number))
     {
-      //TODO handle error
+      printf(ERROR_INVALID_IMMEDIATE_ADDRESSING, line);
       return false;
     }
-  //TODO write to file
-  int address = translate_address(number, 1, 0, 0);
+  address = translate_address(number, 1, 0, 0);
   add_node("Immediate", line, address, &as_file->IC,true,
            as_file->lines);
   return true;
 }
 
-//Second
-bool direct_addressing(ASFile *as_file, char *line,
-                       struct table_item *command,
-                       bool type, instruction *current_instruction)
+int direct_addressing(as_file *current_as_file, char *line,
+                       table_item *command,
+                       int type, instruction *current_instruction)
 {
-  int address;
-  struct table_item *item = search_table(
-    as_file->symbol_table, line);
-  // if (item)
-  //   {
-  //     if (item->symbol->is_extern)
-  //       {
-  //         // current_instruction->E = 1;
-  //         address = 1;
-  //         add_node(line, "Direct",
-  //                      address,
-  //                      &as_file->IC,false, as_file->lines);
-  //         return true;
-  //       }
-  //
-  //
-  //     // add_node(item->key, "Direct",
-  //     //          address,
-  //     //          &as_file->IC,true, as_file->lines);
-  //   }
-  // else
-    // {
-      add_node(line, "Direct",
-               0,
-               &as_file->IC,false, as_file->lines);
-    // }
+  if (type && strstr(command->inst_rule->source_addressing,
+                     DIRECT_ADDRESSING_SIGN) == NULL)
+    {
+      printf(ERROR_OPERAND_INVALID_DIRECT_ADDRESSING, line);
+      return -1;
+    }
+  if (!type && strstr(command->inst_rule->dest_addressing,
+                      DIRECT_ADDRESSING_SIGN) == NULL)
+    {
+      printf(ERROR_OPERAND_INVALID_DIRECT_ADDRESSING, line);
+      return -1;
+    }
+  add_node(line, "Direct",
+           0,
+           &current_as_file->IC,false, current_as_file->lines);
   return true;
 }
 
-//Third
 
-bool relative_addressing(ASFile *as_file, char *line,
-                         struct table_item *command,bool type)
+int relative_addressing(as_file *current_as_file, char *line,
+                         table_item *command,int type)
 {
   if (type && strstr(command->inst_rule->source_addressing,
                      RELATIVE_ADDRESSING_SIGN) == NULL)
     {
-      //TODO HANDLE ERROR
+      printf(ERROR_OPERAND_INVALID_RELATIVE_ADDRESSING, line);
       return false;
     }
   if (!type && strstr(command->inst_rule->dest_addressing,
                       RELATIVE_ADDRESSING_SIGN) == NULL)
     {
-      //TODO HANDLE ERROR
+      printf(ERROR_OPERAND_INVALID_RELATIVE_ADDRESSING, line);
       return false;
     }
-  /* skips over & sign! DONT REMOVE */
+  /**important don't remove, gets rid of '&' sign*/
   line++;
-  struct table_item *item = search_table(
-    as_file->symbol_table, line);
-  // if (item)
-  //   {
-  //     //TODO if external return false!
-  //     if (item->symbol->is_extern)
-  //       {
-  //         //TODO handle error
-  //         return false;
-  //       }
-  //     add_node(item->key, "Relative",
-  //              as_file->IC - item->symbol->location,
-  //              &as_file->IC,true, as_file->lines);
-  //   }
-  // else
-    // {
-      add_node(line, "Relative", 0,
-               &as_file->IC,false, as_file->lines);
-    // }
+  add_node(line, "Relative", 0,
+           &current_as_file->IC,false, current_as_file->lines);
 
   return true;
 }
 
-//Fourth
-int direct_register_addressing(ASFile *as_file, char *line,
-                               struct table_item *command,bool type,
-                               Constants *constants)
+int direct_register_addressing(char *line,
+                               table_item *command,int type,
+                               constants *globals)
 {
+  table_item *item;
   if (type && strstr(command->inst_rule->source_addressing,
                      REGISTER_ADDRESSING_SIGN) == NULL)
     {
-      //TODO HANDLE ERROR
       return -1;
     }
   if (!type && strstr(command->inst_rule->dest_addressing,
                       REGISTER_ADDRESSING_SIGN) == NULL)
     {
-      //TODO HANDLE ERROR
       return -1;
     }
 
-  struct table_item *item = search_table(
-    constants->registers_table, line);
+  item = search_table(
+    globals->registers_table, line);
   if (item)
     {
       return (int) strtol(item->value,NULL, 10);
     }
   return -1;
-  // //printf()
 }
 
 /**
@@ -311,18 +292,17 @@ int direct_register_addressing(ASFile *as_file, char *line,
 returns 0 if immediate, 1 if direct, 2 if relative, 3 if direct register
 -1 if failed
 */
-int check_addressing_type(ASFile *as_file, char *line,
-                          struct table_item
-                          *command, bool type,
+int check_addressing_type(as_file *current_as_file, char *line,
+                          table_item
+                          *command, int type,
                           instruction *current_instruction,
-                          Constants *constants)
+                          constants *globals)
 {
   /* type = true if source, false if dest */
+  int reg;
   if (*line == IMMEDIATE_ADDRESSING_SYMBOL)
     {
-      //printf("hi");
-
-      if (immediate_addressing(as_file, line, command, type))
+      if (immediate_addressing(current_as_file, line, command, type))
         {
           if (type)
             {
@@ -334,38 +314,43 @@ int check_addressing_type(ASFile *as_file, char *line,
               current_instruction->destination_addressing =
                   IMMEDIATE_ADDRESSING_SIGN;
             }
-          return 0;
+          return IMMEDIATE_ADDRESSING_SIGN_INT;
         }
+      current_as_file->is_valid = false;
       return -1;
     }
   if (strstr(line, RELATIVE_ADDRESSING_SYMBOL))
     {
-      return relative_addressing(as_file, line, command, type)
-               ? 2
-               : -1;
+      if (relative_addressing(current_as_file, line, command, type))
+        return RELATIVE_ADDRESSING_SIGN_INT;
+      current_as_file->is_valid = false;
+      return -1;
     }
-  int reg = direct_register_addressing(as_file, line, command, type,
-                                       constants);
+  reg = direct_register_addressing(line, command, type,
+                                   globals);
   if (reg != -1)
     {
       if (type)
         {
           current_instruction->source_reg = reg;
           current_instruction->source_addressing =
-              3;
+              REGISTER_ADDRESSING_SIGN_INT;
         }
       else
         {
           current_instruction->destination_reg = reg;
-          current_instruction->destination_addressing = 3;
+          current_instruction->destination_addressing =
+              REGISTER_ADDRESSING_SIGN_INT;
         }
-      return 3;
+      return REGISTER_ADDRESSING_SIGN_INT;
     }
-  if (direct_addressing(as_file, line, command, type, current_instruction))
+  if (direct_addressing(current_as_file, line, command, type,
+                        current_instruction) == DIRECT_ADDRESSING_SIGN_INT)
     {
-      return 1;
+      return DIRECT_ADDRESSING_SIGN_INT;
     }
-
+  printf(ERROR_INVALID_DIRECT_ADDRESSING, line);
+  current_as_file->is_valid = false;
   return -1;
 }
 
@@ -384,167 +369,161 @@ void initialize_instruction(instruction *current_instruction,
   current_instruction->E = 0;
 }
 
-void handle_instruction(char *full_line, char *line, ASFile *as_file,
-                        Constants *constants)
+void handle_instruction(char *full_line, char *line, as_file *current_as_file,
+                        constants *globals)
 {
   instruction current_instruction;
-  //TODO change return
-  //printf("this is token! %s\n", line);
-  struct table_item *command = search_table(
-    constants->op_code_table, line);
+  node *current_node;
+  int source, dest;
+  char *token;
+  table_item *command = search_table(
+    globals->op_code_table, line);
   if (command == NULL)
     {
-      //TODO HANDLE ERROR
-      //printf("ERROR");
+      current_as_file->is_valid = false;
+      printf(ERROR_INVALID_OP_CODE, line);
       return;
     }
-  Node *node = add_node(line, line, 0, &as_file->IC,true,
-                        as_file->lines);
+  current_node = add_node(line, line, 0, &current_as_file->IC,true,
+                          current_as_file->lines);
   initialize_instruction(&current_instruction,
                          command->inst_rule->op_code,
                          command->inst_rule->funct);
-  bool source = strlen(command->inst_rule->source_addressing);
-  bool dest = strlen(command->inst_rule->dest_addressing);
-  char *token = strtok(NULL, ", \r\n");
+  source = strlen(command->inst_rule->source_addressing);
+  dest = strlen(command->inst_rule->dest_addressing);
+  token = strtok(NULL, ", \r\n");
   /*this is also equal to !dest && !source */
-  if (strcmp(line, "stop") == 0 || strcmp(line, "rts") == 0)
+  if (strcmp(line, STOP_OP_CODE) == 0 || strcmp(line, RTS_OP_CODE) == 0)
     {
       if (token != NULL)
         {
-          //TODO handle error! THERE IS not suppoesed to be more input
+          current_as_file->is_valid = false;
+          printf(ERROR_OPERAND_WRONG_NUM_ARGS, full_line);
           return;
         }
-      node->instruction = translate_instruction_address(&current_instruction);
+      current_node->instruction = translate_instruction_address(
+        &current_instruction);
       return;
     }
-  if (token == NULL && source)
+  if ((token == NULL && source) || (token == NULL && dest))
     {
-      //TODO HANDLE ERROR
-      //printf("ERROR");
+      current_as_file->is_valid = false;
+      printf(ERROR_OPERAND_WRONG_NUM_ARGS, full_line);
       return;
     }
   if (dest && !source)
     {
       current_instruction.destination_addressing =
-          check_addressing_type(
-            as_file,
-            token, command, false, &current_instruction,
-            constants);
+          check_addressing_type(current_as_file, token, command, false,
+                                &current_instruction, globals);
       token = strtok(NULL, ", \r\n");
       if (token != NULL)
         {
-          //printf(
-            //"ERROR! operand cant take more than one argument\n");
-          //TODO handle error
+          current_as_file->is_valid = false;
+          printf(ERROR_OPERAND_WRONG_NUM_ARGS, full_line);
           return;
         }
     }
   else
     {
       current_instruction.source_addressing = check_addressing_type(
-        as_file, token, command, true, &current_instruction,
-        constants);
-      if (current_instruction.source_addressing == -1)
-        {
-          //TODO HANDLE ERROR
-          //printf("ERROR");
-          return;
-        }
+        current_as_file, token, command, true, &current_instruction,
+        globals);
+      if (current_instruction.source_addressing == -1) return;
       token = strtok(NULL, ", \r\n");
       if (dest && token == NULL)
         {
-          //TODO HANDLE ERROR
-          //printf("ERROR");
+          current_as_file->is_valid = false;
+          printf(ERROR_OPERAND_WRONG_NUM_ARGS, full_line);
           return;
         }
       current_instruction.destination_addressing =
           check_addressing_type(
-            as_file, token, command, false,
-            &current_instruction, constants);
-      if (current_instruction.destination_addressing == -1)
-        {
-          //TODO HANDLE ERROR
-          //printf("ERROR");
-          return;
-        }
+            current_as_file, token, command, false,
+            &current_instruction, globals);
+      if (current_instruction.destination_addressing == -1) return;
     }
-  node->instruction = translate_instruction_address(
+  current_node->instruction = translate_instruction_address(
     &current_instruction);
 }
 
-int first_run(ASFile *current_as_file, Constants *constants)
+void first_run(as_file *current_as_file, constants *globals)
 {
   FILE *input_file;
-  struct table_item *item;
-  char *temp = NULL;
-  char *token = NULL;
-  input_file = fopen(current_as_file->file_name_spaces, "r");
+  table_item *item;
+  char line[LINE_LENGTH];
+  char *temp = NULL, *token = NULL;
+  input_file = fopen(current_as_file->file_name_macros, "r");
   if (input_file == NULL)
     {
-      //printf("Error opening file\n");
-      return 1;
+      current_as_file->is_valid = false;
+      printf(ERROR_INVALID_FILE, current_as_file->file_name_macros);
+      return;
     }
-  char line[LINE_LENGTH];
   while (fgets(line, LINE_LENGTH, input_file) != NULL)
     {
       if (temp) free(temp);
+      /* Need a copy of the line to use the line fully */
       temp = strdup(line);
-      //TODO check label dec
+      if (!temp)
+        {
+          printf(ERROR_MEM_FAILED);
+          exit(-1);
+        }
       token = strtok(line, " \r\n");
       if (token == NULL)
         {
-          //TODO HANDLE ERROR
+          /* Empty line, we should never arrive here? */
           continue;
         }
-      //printf("token: %s\n", token);
-      item = search_table(constants->op_code_table, token);
-      //TODO instruction case
+      /* first command was an instruction! */
+      item = search_table(globals->op_code_table, token);
       if (item != NULL)
         {
-          handle_instruction(temp, token, current_as_file,
-                             constants);
-          //TODO HANDLE INSTRUCTION
-          //printf("found INSTRUCTION\n");
+          handle_instruction(temp, token, current_as_file, globals);
           continue;
         }
+
       if (strstr(line, LABEL_DEC))
         {
-          //String/data case
+          /* .data, String or Array case */
           if (strstr(temp, STRING_DEC) || strstr(temp, DATA_DEC))
             {
-              handle_line(current_as_file, temp, 1);
+              if (!handle_line(current_as_file, temp, LABEL_WITH_VARIABLE))
+                continue;
             }
-
           else
             {
-              handle_line(current_as_file, temp, 2);
+              if (!handle_line(current_as_file, temp, LABEL_ALONE))
+                continue;
             }
-          //Checks if the rest is an instruction!
+          /* Checks if the rest is an instruction with opcode*/
           token = strtok(NULL, " \r\n");
-
-          item = search_table(constants->op_code_table, token);
+          item = search_table(globals->op_code_table, token);
           if (item != NULL)
             {
-              //TODO HANDLE MACRO
               handle_instruction(temp, token, current_as_file,
-                                 constants);
-              continue;
+                                 globals);
             }
-          //printf("label token %s\n", token);
+          continue;
         }
-      else
+      /* .data or .string without label! */
+      if (strstr(temp, STRING_DEC) || strstr(temp, DATA_DEC))
         {
-          if (strstr(temp, STRING_DEC) || strstr(temp, DATA_DEC))
-            {
-              handle_line(current_as_file, temp, 0);
-            }
-          if (strstr(temp,EXTERN_DEC) || strstr(temp,ENTRY_DEC))
-            {
-              handle_entry_extern(current_as_file, temp);
-              //TODO handle extern
-            }
+          handle_line(current_as_file, temp, LABEL_WITHOUT_VARIABLE);
+          continue;
         }
+      /* Extern or entry case */
+      if (strstr(temp,EXTERN_DEC) || strstr(temp,ENTRY_DEC))
+        {
+          handle_entry_extern(current_as_file, temp);
+          continue;
+        }
+
+      printf(ERROR_INVALID_INSTRUCTION, temp);
+      current_as_file->is_valid = false;
     }
   if (temp) free(temp);
   fclose(input_file);
+  return;
 }
