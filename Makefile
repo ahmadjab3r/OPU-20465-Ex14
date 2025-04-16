@@ -42,21 +42,21 @@ all: $(EXEC)
 # Linking the Executable
 # -------------------------------
 $(EXEC): $(OBJ_FILES)
-	@echo "🔗 Linking executable..."
+	@echo "Linking executable..."
 	$(CC) $(CFLAGS) -o $@ $(OBJ_FILES)
 
 # -------------------------------
 # Compiling Source Files
 # -------------------------------
 %.o: %.c $(HDR_FILES)
-	@echo "🛠️  Compiling $< ..."
+	@echo "Compiling $< ..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # -------------------------------
 # Clean Build Files
 # -------------------------------
 clean:
-	@echo "🧹 Cleaning up..."
+	@echo "Cleaning up..."
 	rm -f $(OBJ_FILES) $(EXEC)
 
 # -------------------------------
@@ -68,7 +68,7 @@ rebuild: clean all
 # Run Executable
 # -------------------------------
 run: all
-	@echo "🚀 Running..."
+	@echo "Running..."
 	./$(EXEC)
 
 # -------------------------------

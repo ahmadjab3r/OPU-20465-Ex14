@@ -1,4 +1,5 @@
 #include "Header Files/initial_run.h"
+#include "Header Files/hash_table.h"
 
 void initial_run(as_file *current_as_file)
 {
@@ -113,17 +114,17 @@ int store_mcro(as_file *current_as_file, char *current_line, FILE *file)
     }
   if (macro_content == NULL)
     {
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   if (insert_table_item(current_as_file->macro_table, macro_name,
                         macro_content) == NULL)
     {
       printf(ERROR_MEM_FAILED);
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
-  printf("-----------MCRO CONTENT START----------- \n");
+  /*printf("-----------MCRO CONTENT START----------- \n");
   printf("%s", macro_content);
-  printf("-----------MCRO CONTENT END----------- \n");
+  printf("-----------MCRO CONTENT END----------- \n");*/
   free(macro_content);
   free(macro_name);
   return 0;

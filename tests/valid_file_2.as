@@ -1,7 +1,7 @@
 mcro PRINT
     prn r1
     prn r2
-endmcro
+mcroend
 
 START:  mov r3, r4
         PRINT

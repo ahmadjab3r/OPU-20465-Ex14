@@ -1,4 +1,6 @@
 #include "Header Files/utilities.h"
+#include "Header Files/hash_table.h"
+#include "Header Files/linked_list.h"
 
 /**
  * This function removes all extra unnecessary white spaces from the file
@@ -24,6 +26,7 @@ char *remove_spaces(char *file_name, char *output_file_name)
   if (output_file == NULL)
     {
       perror("Error creating output file");
+
       fclose(input_file);
       return NULL;
     }
@@ -32,7 +35,7 @@ char *remove_spaces(char *file_name, char *output_file_name)
   while ((c = fgetc(input_file)) != EOF)
     {
       /*TODO check this*/
-      if (c == '/')
+      if (c == ';')
         {
           has_comment = 1;
           continue;
@@ -108,7 +111,7 @@ char *copy_line(char *macro_content, char *current_line)
       if (macro_content == NULL)
         {
           printf(ALLOCATION_FAIL);
-          exit(-1);
+          exit(EXIT_FAILURE);
         }
       strcpy(macro_content, current_line);
       return macro_content;
@@ -118,7 +121,7 @@ char *copy_line(char *macro_content, char *current_line)
   if (macro_content == NULL)
     {
       printf(ALLOCATION_FAIL);
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   strcat(macro_content, current_line);
   return macro_content;
@@ -214,19 +217,19 @@ constants *initialize_constants(void)
   if (globals == NULL)
     {
       printf(ALLOCATION_FAIL);
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   globals->op_code_table = initialize_op_code_table();
   if (globals->op_code_table == NULL)
     {
       printf(ALLOCATION_FAIL);
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   globals->registers_table = initialize_registers_table();
   if (globals->registers_table == NULL)
     {
       printf(ALLOCATION_FAIL);
-      exit(-1);
+      exit(EXIT_FAILURE);
     }
   return globals;
 }
@@ -306,7 +309,7 @@ void print_binary(int value)
 
 void print_lines(linked_list *lines)
 {
-  node *current = lines->head;
+  struct node *current = lines->head;
   while (current != NULL)
     {
       printf("key: %s, content: %s, instruction: %d, lines: %d\n",
@@ -316,7 +319,16 @@ void print_lines(linked_list *lines)
       current = current->next;
     }
 }
-
+char *strdup(const char *str)
+{
+  int n = strlen(str) + 1;
+  char *dup = malloc(n);
+  if(dup)
+  {
+    strcpy(dup, str);
+  }
+  return dup;
+}
 /*int testing_hash_table(void)
 {
   struct MacroTable *m = create_table();

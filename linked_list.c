@@ -13,9 +13,9 @@ linked_list *initialize_linked_list(void)
   list->size = 0;
   return list;
 }
-node *search_list(linked_list *list, char *name, int *found)
+ node *search_list(linked_list *list, char *name, int *found)
 {
-  node *current = list->head;
+   node *current = list->head;
   while (current != NULL)
     {
       if (strcmp(current->name, name) == 0)
@@ -26,12 +26,13 @@ node *search_list(linked_list *list, char *name, int *found)
       current = current->next;
     }
   *found = 0;
+
   return NULL;
 }
-node *add_node(char *name, char *content, int instruction, int *line,
+ node *add_node(char *name, char *content, int instruction, int *line,
                int declared, linked_list *list)
 {
-  node *new_node = (node *) malloc(sizeof(node));
+   node *new_node = ( node *) malloc(sizeof(node));
   if (new_node == NULL)
     {
       printf(ALLOCATION_FAIL);
@@ -60,8 +61,8 @@ node *add_node(char *name, char *content, int instruction, int *line,
 }
 void free_list(linked_list **list)
 {
-  node *current = (*list)->head;
-  node *next_node;
+   node *current = (*list)->head;
+   node *next_node;
   while (current != NULL)
     {
       next_node = current->next;

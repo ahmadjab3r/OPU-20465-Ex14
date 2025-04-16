@@ -1,10 +1,13 @@
 #include "Header Files/first_run.h"
-int handle_entry_extern(as_file *current_as_file, char *str)
+#include "Header Files/hash_table.h"
+#include "Header Files/linked_list.h"
+
+int handle_entry_extern(as_file *current_as_file, char *line)
 {
   /* type == true if entry, false if extern */
   char *symbol;
   table_item *item;
-  int type = strstr(str,ENTRY_DEC) != NULL;
+  int type = strstr(line,ENTRY_DEC) != NULL;
   symbol = strtok(NULL, " \r\n");
   item = search_table(current_as_file->symbol_table, symbol);
   if (item)
@@ -122,17 +125,17 @@ int handle_data_inside(as_file *current_as_file, char *symbol_name, char
     }
   return true;
 }
-int handle_line(as_file *current_as_file, char *str, int with_label)
+int handle_symbol_line(as_file *current_as_file, char *current_line, int with_label)
 {
   char *symbol_type, *symbol_name, *token;
   table_item *item;
   /* current_case is true if .string, false if .data*/
   symbol_name = NO_LABEL;
-  token = strtok(str, " :\n\r");
+  token = strtok(current_line, " :\n\r");
   if (token == NULL)
     {
       current_as_file->is_valid = false;
-      printf(ERROR_INVALID_LABEL, str);
+      printf(ERROR_INVALID_LABEL, current_line);
       return false;
     }
 
@@ -218,7 +221,7 @@ int immediate_addressing(as_file *as_file, char *line,
 
 int direct_addressing(as_file *current_as_file, char *line,
                        table_item *command,
-                       int type, instruction *current_instruction)
+                       int type)
 {
   if (type && strstr(command->inst_rule->source_addressing,
                      DIRECT_ADDRESSING_SIGN) == NULL)
@@ -294,7 +297,7 @@ returns 0 if immediate, 1 if direct, 2 if relative, 3 if direct register
 */
 int check_addressing_type(as_file *current_as_file, char *line,
                           table_item
-                          *command, int type,
+                          *operand, int type,
                           instruction *current_instruction,
                           constants *globals)
 {
@@ -302,7 +305,7 @@ int check_addressing_type(as_file *current_as_file, char *line,
   int reg;
   if (*line == IMMEDIATE_ADDRESSING_SYMBOL)
     {
-      if (immediate_addressing(current_as_file, line, command, type))
+      if (immediate_addressing(current_as_file, line, operand, type))
         {
           if (type)
             {
@@ -321,12 +324,12 @@ int check_addressing_type(as_file *current_as_file, char *line,
     }
   if (strstr(line, RELATIVE_ADDRESSING_SYMBOL))
     {
-      if (relative_addressing(current_as_file, line, command, type))
+      if (relative_addressing(current_as_file, line, operand, type))
         return RELATIVE_ADDRESSING_SIGN_INT;
       current_as_file->is_valid = false;
       return -1;
     }
-  reg = direct_register_addressing(line, command, type,
+  reg = direct_register_addressing(line, operand, type,
                                    globals);
   if (reg != -1)
     {
@@ -344,8 +347,7 @@ int check_addressing_type(as_file *current_as_file, char *line,
         }
       return REGISTER_ADDRESSING_SIGN_INT;
     }
-  if (direct_addressing(current_as_file, line, command, type,
-                        current_instruction) == DIRECT_ADDRESSING_SIGN_INT)
+  if (direct_addressing(current_as_file, line, operand, type) == DIRECT_ADDRESSING_SIGN_INT)
     {
       return DIRECT_ADDRESSING_SIGN_INT;
     }
@@ -373,7 +375,7 @@ void handle_instruction(char *full_line, char *line, as_file *current_as_file,
                         constants *globals)
 {
   instruction current_instruction;
-  node *current_node;
+   node *current_node;
   int source, dest;
   char *token;
   table_item *command = search_table(
@@ -468,7 +470,7 @@ void first_run(as_file *current_as_file, constants *globals)
       if (!temp)
         {
           printf(ERROR_MEM_FAILED);
-          exit(-1);
+          exit(EXIT_FAILURE);
         }
       token = strtok(line, " \r\n");
       if (token == NULL)
@@ -489,12 +491,12 @@ void first_run(as_file *current_as_file, constants *globals)
           /* .data, String or Array case */
           if (strstr(temp, STRING_DEC) || strstr(temp, DATA_DEC))
             {
-              if (!handle_line(current_as_file, temp, LABEL_WITH_VARIABLE))
+              if (!handle_symbol_line(current_as_file, temp, LABEL_WITH_VARIABLE))
                 continue;
             }
           else
             {
-              if (!handle_line(current_as_file, temp, LABEL_ALONE))
+              if (!handle_symbol_line(current_as_file, temp, LABEL_ALONE))
                 continue;
             }
           /* Checks if the rest is an instruction with opcode*/
@@ -510,7 +512,7 @@ void first_run(as_file *current_as_file, constants *globals)
       /* .data or .string without label! */
       if (strstr(temp, STRING_DEC) || strstr(temp, DATA_DEC))
         {
-          handle_line(current_as_file, temp, LABEL_WITHOUT_VARIABLE);
+          handle_symbol_line(current_as_file, temp, LABEL_WITHOUT_VARIABLE);
           continue;
         }
       /* Extern or entry case */
