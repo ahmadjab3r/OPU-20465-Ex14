@@ -23,12 +23,13 @@ table *create_table(void) {
 }
 
 int hash_function(char *key, int table_size) {
-    int current_hash = 3;
-    while (*key != '\0') {
-        current_hash = (current_hash * PRIME_NUMBER) + *key;
-        key++;
-    }
-    return (current_hash % table_size);
+    unsigned long hash = 5381;
+    int c;
+
+    while (c = *key++)
+        hash = ((hash << 5) + hash) + c;
+
+    return hash % table_size;
 }
 
 struct table_item *insert_table_item(table *current_table, char *key,
