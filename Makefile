@@ -4,11 +4,12 @@
 CC      := gcc
 CFLAGS  := -Wall -ansi -pedantic -std=c90
 EXEC    := assembler
-HDR_DIR := Header Files
 
 # -------------------------------
 # Source and Header Files
 # -------------------------------
+HDR_DIR := Header Files
+
 SRC_FILES := \
 	assembler.c \
 	first_run.c \
@@ -26,6 +27,7 @@ HDR_FILES := \
 	$(HDR_DIR)/linked_list.h \
 	$(HDR_DIR)/utilities.h \
 	$(HDR_DIR)/skeleton.h
+
 # -------------------------------
 # Object Files
 # -------------------------------
@@ -62,6 +64,12 @@ clean:
 # -------------------------------
 rebuild: clean all
 
+# -------------------------------
+# Run Executable
+# -------------------------------
+run: all
+	@echo "🚀 Running..."
+	./$(EXEC)
 
 # -------------------------------
 # Phony Targets
