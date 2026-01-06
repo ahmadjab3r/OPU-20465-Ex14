@@ -87,13 +87,13 @@ table_item *insert_item_with_instructions(hash_table *table,
                                           char *dest_addressing);
 
 table_item *insert_item_with_symbol(hash_table *table,
-                                    char *symbol_name,
-                                    char *symbol_location,
-                                    int location,
-                                    int is_data,
-                                    int is_entry,
-                                    int is_extern,
-                                    int is_code
+                                     char *symbol_name,
+                                     char *symbol_location,
+                                     int location,
+                                     int is_data,
+                                     int is_entry,
+                                     int is_extern,
+                                     int is_code
 );
 int insert_external(hash_table *table, char *symbol_name,
                      int location);

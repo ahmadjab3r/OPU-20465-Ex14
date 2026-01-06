@@ -1,0 +1,4 @@
+START: mov r3,r4 
+prn r1 
+prn r2 
+stop

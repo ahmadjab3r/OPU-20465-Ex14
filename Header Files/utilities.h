@@ -19,12 +19,12 @@ char *generate_file_name(char *file_name, char* ending);
  */
 char *remove_spaces(char *file_name, char *output_file_name);
 
-/**
- * gets a continuation of a macro and returns the old and the new one compacted
- * @param macro_content current saved macro content
- * @param current_line
- * @return
- */
+ /**
+  * gets a continuation of a macro and returns the old and the new one compacted
+  * @param macro_content current saved macro content
+  * @param current_line
+  * @return
+  */
 char *copy_line(char *macro_content, char *current_line);
 
 /**

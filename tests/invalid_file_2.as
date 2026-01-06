@@ -1,0 +1,8 @@
+MAIN:  add r3, LIST
+
+dec #4
+add &LIST, r2
+jmp &LOOP
+END: stop
+STR: .string "abcd"
+K: .data 31

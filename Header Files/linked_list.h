@@ -22,6 +22,3 @@ linked_list* initialize_linked_list(void);
 node *add_node(char *name, char* content, int instruction, int *line, int declared,linked_list *linked_list);
 node *search_list(linked_list *linked_list, char *name, int *found);
 void free_list(linked_list **linked_list);
-
-
-

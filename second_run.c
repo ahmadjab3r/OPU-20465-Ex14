@@ -1,4 +1,6 @@
 #include "Header Files/second_run.h"
+#include "Header Files/hash_table.h"
+#include "Header Files/linked_list.h"
 
 void write_entry_external_files(as_file *as_file)
 {
@@ -53,17 +55,32 @@ void write_entry_external_files(as_file *as_file)
       fclose(entr_file);
     }
 }
-
-int second_run(as_file *as_file)
+void write_ob_file(as_file *as_file)
 {
   FILE *ob;
   node *current;
-  if (as_file->is_valid)
-    {
-      ob = fopen(as_file->file_name_ob, "w");
+
+  ob = fopen(as_file->file_name_ob, "w");
       fprintf(ob, "%7d %x\n", as_file->lines->size - as_file->DC,
               as_file->DC);
+
+  current = as_file->lines->head;
+  while (current != NULL)
+    {
+      if (as_file->is_valid)
+        {
+          fprintf(ob, PRINT_FORMAT, current->line,
+                  (unsigned) (current->instruction & 0xFFFFFF));
+        }
+      current = current->next;
     }
+
+      fclose(ob);
+
+}
+int second_run(as_file *as_file)
+{
+  node *current;
   current = as_file->lines->head;
   while (current != NULL)
     {
@@ -105,18 +122,15 @@ int second_run(as_file *as_file)
               current->declared = true;
             }
         }
-      if (as_file->is_valid)
-        {
-          fprintf(ob, PRINT_FORMAT, current->line,
-                  (unsigned) (current->instruction & 0xFFFFFF));
-        }
+
 
       current = current->next;
     }
   if (as_file->is_valid)
     {
+      write_ob_file(as_file);
       write_entry_external_files(as_file);
-      fclose(ob);
-    }
+
+      }
   return 0;
 }

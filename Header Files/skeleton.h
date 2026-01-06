@@ -2,7 +2,6 @@
 #define FINAL_PROJECT_SKELETON
 
 #include "hash_table.h"
-
 #include "linked_list.h"
 
 
@@ -13,7 +12,7 @@
 
 /* #############     MESSAGES END        #################*/
 
-/* #############     ERRORS        #################*/
+ /* #############     ERRORS        #################*/
 #define ERROR_INVALID_FILE "ERROR: Failed to open file %s\n"
 #define ERROR_MEM_FAILED "ERROR: Failed to allocate memory\n"
 #define ERROR_INVALID_MACRO "ERROR: Invalid Mcro definition\n"
@@ -88,8 +87,6 @@
 #define ENDMCRO "mcroend"
 /* #############   MCRO END  #################*/
 
-
-/* #############     opcode   #################*/
 #define STOP_OP_CODE "stop"
 #define RTS_OP_CODE "rts"
 /* #############   opcode END  #################*/

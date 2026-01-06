@@ -1,0 +1,5 @@
+lea r6
+mov r3, r4
+PRINT
+stop #4
+mov #1,r4
